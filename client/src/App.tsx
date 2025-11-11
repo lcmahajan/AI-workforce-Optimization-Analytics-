@@ -11,6 +11,7 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import Analytics from "@/pages/Analytics";
 import Employees from "@/pages/Employees";
+import FitmentAnalysis from "@/pages/FitmentAnalysis";
 import UploadData from "@/pages/UploadData";
 import Optimization from "@/pages/Optimization";
 import Reports from "@/pages/Reports";
@@ -75,6 +76,9 @@ function Router() {
       </Route>
       <Route path="/employees">
         {() => <ProtectedRoute component={Employees} />}
+      </Route>
+      <Route path="/fitment">
+        {() => <ProtectedRoute component={FitmentAnalysis} />}
       </Route>
       <Route path="/upload">
         {() => <AdminRoute component={UploadData} />}

@@ -10,6 +10,7 @@ import {
   Brain,
   AlertCircle,
   LogOut,
+  Target,
 } from "lucide-react";
 import {
   Sidebar,
@@ -41,6 +42,7 @@ const dataItems = [
 ];
 
 const insightsItems = [
+  { title: "Fitment Analysis", url: "/fitment", icon: Target },
   { title: "Softskills", url: "/softskills", icon: Brain },
   { title: "Fatigue Analysis", url: "/fatigue", icon: AlertCircle },
 ];

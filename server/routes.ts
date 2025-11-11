@@ -13,7 +13,6 @@ import {
 } from "./auth";
 import {
   insertUserSchema,
-  insertEmployeeSchema,
   insertJobDescriptionSchema,
   insertCvSchema,
   insertActivitySchema,
@@ -97,11 +96,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ user: req.user });
   });
 
-  // Employee Routes
+  // User Routes (replacing employee routes - users now contain employee data)
+  app.get("/api/users", authMiddleware, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to fetch users" });
+    }
+  });
+
+  app.get("/api/users/:id", authMiddleware, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.params.id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      res.json(user);
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to fetch user" });
+    }
+  });
+
+  app.put("/api/users/:id", authMiddleware, async (req, res) => {
+    try {
+      const data = insertUserSchema.partial().omit({ password: true }).parse(req.body);
+      const user = await storage.updateUser(req.params.id, data);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      res.json(user);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message || "Failed to update user" });
+    }
+  });
+
+  app.delete("/api/users/:id", authMiddleware, requireAdmin, async (req, res) => {
+    try {
+      const success = await storage.deleteUser(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to delete user" });
+    }
+  });
+
+  // Legacy /api/employees endpoints (backward compatibility adapters)
   app.get("/api/employees", authMiddleware, async (req, res) => {
     try {
-      const employees = await storage.getAllEmployees();
-      res.json(employees);
+      const users = await storage.getAllUsers();
+      res.json(users);
     } catch (error: any) {
       res.status(500).json({ error: "Failed to fetch employees" });
     }
@@ -109,34 +155,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/employees/:id", authMiddleware, async (req, res) => {
     try {
-      const employee = await storage.getEmployee(req.params.id);
-      if (!employee) {
+      const user = await storage.getUser(req.params.id);
+      if (!user) {
         return res.status(404).json({ error: "Employee not found" });
       }
-      res.json(employee);
+      res.json(user);
     } catch (error: any) {
       res.status(500).json({ error: "Failed to fetch employee" });
     }
   });
 
-  app.post("/api/employees", authMiddleware, requireAdmin, async (req, res) => {
-    try {
-      const data = insertEmployeeSchema.parse(req.body);
-      const employee = await storage.createEmployee(data);
-      res.json(employee);
-    } catch (error: any) {
-      res.status(400).json({ error: error.message || "Failed to create employee" });
-    }
-  });
-
   app.put("/api/employees/:id", authMiddleware, requireAdmin, async (req, res) => {
     try {
-      const data = insertEmployeeSchema.partial().parse(req.body);
-      const employee = await storage.updateEmployee(req.params.id, data);
-      if (!employee) {
+      const data = insertUserSchema.partial().omit({ password: true }).parse(req.body);
+      const user = await storage.updateUser(req.params.id, data);
+      if (!user) {
         return res.status(404).json({ error: "Employee not found" });
       }
-      res.json(employee);
+      res.json(user);
     } catch (error: any) {
       res.status(400).json({ error: error.message || "Failed to update employee" });
     }
@@ -144,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/employees/:id", authMiddleware, requireAdmin, async (req, res) => {
     try {
-      const success = await storage.deleteEmployee(req.params.id);
+      const success = await storage.deleteUser(req.params.id);
       if (!success) {
         return res.status(404).json({ error: "Employee not found" });
       }
@@ -206,7 +242,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { employeeId, startDate, endDate } = req.query;
 
       if (employeeId) {
-        const activities = await storage.getActivitiesByEmployee(employeeId as string);
+        const activities = await storage.getActivitiesByUser(employeeId as string);
         return res.json(activities);
       }
 
@@ -227,7 +263,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/activities", authMiddleware, async (req, res) => {
     try {
-      const data = insertActivitySchema.parse(req.body);
+      const requestData = { ...req.body };
+      
+      // Backward compatibility: map employeeId to user if present
+      if (requestData.employeeId && !requestData.user) {
+        requestData.user = requestData.employeeId;
+        delete requestData.employeeId;
+      }
+      
+      // Provide defaults for new required fields if not present
+      if (!requestData.activityType) {
+        requestData.activityType = "task";
+      }
+      if (!requestData.durationMinutes) {
+        requestData.durationMinutes = requestData.hoursSpent ? requestData.hoursSpent * 60 : 0;
+      }
+      if (!requestData.source) {
+        requestData.source = "manual";
+      }
+      
+      const data = insertActivitySchema.parse(requestData);
       const activity = await storage.createActivity(data);
       res.json(activity);
     } catch (error: any) {
@@ -236,19 +291,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // File Upload Routes
-  app.post("/api/uploads/jd", authMiddleware, requireAdmin, upload.single("file"), async (req, res) => {
+  app.post("/api/uploads/jd", authMiddleware, requireAdmin, upload.single("file"), async (req: AuthRequest, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
       }
 
-      const { title, requirements } = req.body;
+      const { title, requirements, department } = req.body;
       const fileContent = req.file.buffer.toString("utf-8");
 
       const jd = await storage.createJobDescription({
         title: title || req.file.originalname,
         description: fileContent,
         requirements: requirements ? JSON.parse(requirements) : {},
+        department: department || "General",
+        uploadedBy: req.user!.id,
       });
 
       res.json({ success: true, jobDescription: jd });
@@ -257,7 +314,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/uploads/cv", authMiddleware, requireAdmin, upload.single("file"), async (req, res) => {
+  app.post("/api/uploads/cv", authMiddleware, requireAdmin, upload.single("file"), async (req: AuthRequest, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
@@ -271,6 +328,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: email || "",
         content: fileContent,
         skills: [],
+        uploadedBy: req.user!.id,
       });
 
       res.json({ success: true, cv });
@@ -296,10 +354,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .map((row: any) => {
                 try {
                   return insertActivitySchema.parse({
-                    employeeId: row.employeeId || row.employee_id,
-                    taskName: row.taskName || row.task_name || row.task,
-                    hoursSpent: parseInt(row.hoursSpent || row.hours_spent || row.hours || "0"),
+                    user: row.user || row.userId || row.user_id || row.employeeId || row.employee_id,
+                    activityType: row.activityType || row.activity_type || row.type || "task",
+                    tower: row.tower || null,
+                    category: row.category || null,
                     date: row.date,
+                    durationMinutes: parseInt(row.durationMinutes || row.duration_minutes || row.duration || row.minutes || "0"),
+                    source: row.source || "csv_upload",
+                    taskName: row.taskName || row.task_name || row.task || null,
+                    hoursSpent: parseInt(row.hoursSpent || row.hours_spent || row.hours || "0") || null,
                     status: row.status || "completed",
                     projectId: row.projectId || row.project_id || null,
                   });
@@ -331,7 +394,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Analytics Routes
   app.get("/api/analytics/overview", authMiddleware, async (req, res) => {
     try {
-      const employees = await storage.getAllEmployees();
+      const employees = await storage.getAllUsers();
       const activities = await storage.getAllActivities();
       const fitmentScores = await storage.getAllFitmentScores();
 
@@ -361,12 +424,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/analytics/employee/:id", authMiddleware, async (req, res) => {
     try {
-      const employee = await storage.getEmployee(req.params.id);
+      const employee = await storage.getUser(req.params.id);
       if (!employee) {
         return res.status(404).json({ error: "Employee not found" });
       }
 
-      const activities = await storage.getActivitiesByEmployee(req.params.id);
+      const activities = await storage.getActivitiesByUser(req.params.id);
       const totalHours = activities.reduce((sum, a) => sum + a.hoursSpent, 0);
       const completedTasks = activities.filter(a => a.status === "completed").length;
 
@@ -411,7 +474,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/analytics/productivity", authMiddleware, async (req, res) => {
     try {
       const activities = await storage.getAllActivities();
-      const employees = await storage.getAllEmployees();
+      const employees = await storage.getAllUsers();
 
       const totalHours = activities.reduce((sum, a) => sum + a.hoursSpent, 0);
       const completedTasks = activities.filter(a => a.status === "completed").length;
@@ -485,7 +548,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const startDate = new Date(Date.now() - weeksNum * 7 * 24 * 60 * 60 * 1000);
       
       const activities = await storage.getActivitiesByDateRange(startDate, endDate);
-      const employees = await storage.getAllEmployees();
+      const employees = await storage.getAllUsers();
 
       const employeeWorkload = new Map<string, { totalHours: number; taskCount: number; consecutiveDays: number }>();
 
@@ -557,7 +620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Optimization Recommendations Routes
   app.get("/api/optimization/recommendations", authMiddleware, async (req, res) => {
     try {
-      const employees = await storage.getAllEmployees();
+      const employees = await storage.getAllUsers();
       const activities = await storage.getAllActivities();
 
       const recommendations = [];
@@ -696,7 +759,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { type = "csv", startDate, endDate } = req.query;
 
-      const employees = await storage.getAllEmployees();
+      const employees = await storage.getAllUsers();
       const activities = await storage.getAllActivities();
 
       if (type === "csv") {

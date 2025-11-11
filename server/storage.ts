@@ -1,7 +1,6 @@
 import { db } from "./db";
 import {
   users,
-  employees,
   jobDescriptions,
   cvs,
   activities,
@@ -9,8 +8,6 @@ import {
   uploads,
   type User,
   type InsertUser,
-  type Employee,
-  type InsertEmployee,
   type JobDescription,
   type InsertJobDescription,
   type Cv,
@@ -26,20 +23,17 @@ import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Users
+  getAllUsers(): Promise<User[]>;
   getUser(id: string): Promise<User | undefined>;
   getUserById(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUsersByDepartment(department: string): Promise<User[]>;
+  getUsersByRole(role: string): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: string, data: Partial<InsertUser>): Promise<User | undefined>;
   updateUserPassword(id: string, hashedPassword: string): Promise<void>;
-  
-  // Employees
-  getAllEmployees(): Promise<Employee[]>;
-  getEmployee(id: string): Promise<Employee | undefined>;
-  getEmployeesByDepartment(department: string): Promise<Employee[]>;
-  createEmployee(employee: InsertEmployee): Promise<Employee>;
-  updateEmployee(id: string, data: Partial<InsertEmployee>): Promise<Employee | undefined>;
-  deleteEmployee(id: string): Promise<boolean>;
+  deleteUser(id: string): Promise<boolean>;
   
   // Job Descriptions
   getAllJobDescriptions(): Promise<JobDescription[]>;
@@ -53,7 +47,7 @@ export interface IStorage {
   
   // Activities
   getAllActivities(): Promise<Activity[]>;
-  getActivitiesByEmployee(employeeId: string): Promise<Activity[]>;
+  getActivitiesByUser(userId: string): Promise<Activity[]>;
   getActivitiesByDateRange(startDate: Date, endDate: Date): Promise<Activity[]>;
   createActivity(activity: InsertActivity): Promise<Activity>;
   createActivitiesBulk(activities: InsertActivity[]): Promise<Activity[]>;
@@ -104,36 +98,25 @@ export class DbStorage implements IStorage {
     await db.update(users).set({ password: hashedPassword }).where(eq(users.id, id));
   }
 
-  // Employees
-  async getAllEmployees(): Promise<Employee[]> {
-    return db.select().from(employees).orderBy(desc(employees.createdAt));
+  async getAllUsers(): Promise<User[]> {
+    return db.select().from(users).orderBy(desc(users.createdAt));
   }
 
-  async getEmployee(id: string): Promise<Employee | undefined> {
-    const result = await db.select().from(employees).where(eq(employees.id, id)).limit(1);
+  async getUsersByDepartment(department: string): Promise<User[]> {
+    return db.select().from(users).where(eq(users.department, department)).orderBy(desc(users.createdAt));
+  }
+
+  async getUsersByRole(role: string): Promise<User[]> {
+    return db.select().from(users).where(eq(users.role, role)).orderBy(desc(users.createdAt));
+  }
+
+  async updateUser(id: string, data: Partial<InsertUser>): Promise<User | undefined> {
+    const result = await db.update(users).set(data).where(eq(users.id, id)).returning();
     return result[0];
   }
 
-  async getEmployeesByDepartment(department: string): Promise<Employee[]> {
-    return db.select().from(employees).where(eq(employees.department, department));
-  }
-
-  async createEmployee(employee: InsertEmployee): Promise<Employee> {
-    const result = await db.insert(employees).values(employee).returning();
-    return result[0];
-  }
-
-  async updateEmployee(id: string, data: Partial<InsertEmployee>): Promise<Employee | undefined> {
-    const result = await db
-      .update(employees)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(employees.id, id))
-      .returning();
-    return result[0];
-  }
-
-  async deleteEmployee(id: string): Promise<boolean> {
-    const result = await db.delete(employees).where(eq(employees.id, id)).returning();
+  async deleteUser(id: string): Promise<boolean> {
+    const result = await db.delete(users).where(eq(users.id, id)).returning();
     return result.length > 0;
   }
 
@@ -172,8 +155,8 @@ export class DbStorage implements IStorage {
     return db.select().from(activities).orderBy(desc(activities.date));
   }
 
-  async getActivitiesByEmployee(employeeId: string): Promise<Activity[]> {
-    return db.select().from(activities).where(eq(activities.employeeId, employeeId)).orderBy(desc(activities.date));
+  async getActivitiesByUser(userId: string): Promise<Activity[]> {
+    return db.select().from(activities).where(eq(activities.user, userId)).orderBy(desc(activities.date));
   }
 
   async getActivitiesByDateRange(startDate: Date, endDate: Date): Promise<Activity[]> {

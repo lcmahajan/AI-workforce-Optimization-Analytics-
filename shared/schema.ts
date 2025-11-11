@@ -39,29 +39,6 @@ export const insertUserSchema = createInsertSchema(users).omit({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
-export const employees = pgTable("employees", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  position: text("position").notNull(),
-  department: text("department").notNull(),
-  email: text("email").notNull().unique(),
-  phone: text("phone"),
-  status: text("status").notNull().default("active"),
-  userId: varchar("user_id").references(() => users.id),
-  fitmentScore: integer("fitment_score"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
-
-export const insertEmployeeSchema = createInsertSchema(employees).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export type InsertEmployee = z.infer<typeof insertEmployeeSchema>;
-export type Employee = typeof employees.$inferSelect;
-
 export const jobDescriptions = pgTable("job_descriptions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),

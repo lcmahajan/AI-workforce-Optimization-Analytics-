@@ -10,6 +10,15 @@ The application is built as a full-stack web application with a React frontend, 
 
 Preferred communication style: Simple, everyday language.
 
+## Implementation Timeline & Milestones
+
+**Sprint 0 (2 days)**: Scaffold & auth + DB models  
+**Sprint 1 (1 week)**: Employee CRUD + Admin UI  
+**Sprint 2 (1 week)**: Upload flows + parsing CSV/Excel  
+**Sprint 3 (1 week)**: Basic analytics & Dashboard  
+**Sprint 4 (2 weeks)**: Fitment heuristic engine + UI  
+**Sprint 5 (2 weeks)**: Security, tests, export & docs
+
 ## System Architecture
 
 ### Frontend Architecture

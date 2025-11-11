@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2, Shield } from "lucide-react";
 import type { Setting } from "@shared/schema";
 
@@ -111,6 +111,15 @@ export default function Settings() {
     productivity: 20,
     softskills: 10,
   });
+
+  useEffect(() => {
+    if (settings) {
+      const fitmentWeightsSetting = settings.find((s) => s.key === "fitment_weights");
+      if (fitmentWeightsSetting && fitmentWeightsSetting.value) {
+        setFitmentWeights(fitmentWeightsSetting.value);
+      }
+    }
+  }, [settings]);
 
   const handleFitmentWeightChange = (key: keyof typeof fitmentWeights, value: number) => {
     setFitmentWeights((prev) => ({ ...prev, [key]: value }));

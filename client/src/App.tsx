@@ -77,7 +77,7 @@ function Router() {
         {() => <ProtectedRoute component={Employees} />}
       </Route>
       <Route path="/upload">
-        {() => <ProtectedRoute component={UploadData} />}
+        {() => <AdminRoute component={UploadData} />}
       </Route>
       <Route path="/optimization">
         {() => <ProtectedRoute component={Optimization} />}

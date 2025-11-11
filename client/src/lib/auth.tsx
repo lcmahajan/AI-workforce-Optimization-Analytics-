@@ -4,15 +4,15 @@ import { apiRequest } from "./queryClient";
 interface User {
   id: string;
   email: string;
-  name: string;
+  username: string;
   role: string;
 }
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, role?: string) => Promise<void>;
+  login: (usernameOrEmail: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string, department?: string, role?: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -35,10 +35,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (usernameOrEmail: string, password: string) => {
     const response = await apiRequest("/api/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ username: usernameOrEmail, email: usernameOrEmail, password }),
     });
 
     if (!response.ok) {
@@ -53,10 +53,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("auth_user", JSON.stringify(data.user));
   };
 
-  const register = async (name: string, email: string, password: string, role: string = "employee") => {
+  const register = async (username: string, email: string, password: string, department: string = "", role: string = "employee") => {
     const response = await apiRequest("/api/auth/register", {
       method: "POST",
-      body: JSON.stringify({ name, email, password, role }),
+      body: JSON.stringify({ username, email, password, role, department }),
     });
 
     if (!response.ok) {

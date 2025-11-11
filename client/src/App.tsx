@@ -99,7 +99,7 @@ function AppContent() {
             <div className="flex items-center gap-4">
               {user && (
                 <div className="text-sm text-muted-foreground">
-                  {user.name} ({user.role})
+                  {user.username} ({user.role})
                 </div>
               )}
               <ThemeToggle />

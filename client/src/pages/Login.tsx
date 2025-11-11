@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -12,9 +13,12 @@ export default function Login() {
   const [, setLocation] = useLocation();
   const { login, register } = useAuth();
   const { toast } = useToast();
-  const [email, setEmail] = useState("");
+  const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [department, setDepartment] = useState("");
+  const [role, setRole] = useState("employee");
   const [isRegistering, setIsRegistering] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -25,7 +29,7 @@ export default function Login() {
     setError("");
     
     try {
-      await login(email, password);
+      await login(usernameOrEmail, password);
       toast({
         title: "Success",
         description: "Logged in successfully",
@@ -44,7 +48,7 @@ export default function Login() {
     setError("");
     
     try {
-      await register(name, email, password);
+      await register(username, email, password, department, role);
       toast({
         title: "Success",
         description: "Account created successfully",
@@ -62,7 +66,7 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mb-4">
-            <h1 className="text-2xl font-bold text-primary">WorkForce AI</h1>
+            <h1 className="text-2xl font-bold text-primary">AI Workforce Platform</h1>
             <p className="text-sm text-muted-foreground">Optimization Platform</p>
           </div>
           <CardTitle className="text-2xl">
@@ -81,44 +85,96 @@ export default function Login() {
             </Alert>
           )}
           <form onSubmit={isRegistering ? handleRegister : handleLogin} className="space-y-4">
-            {isRegistering && (
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="John Doe"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  data-testid="input-name"
-                />
-              </div>
+            {isRegistering ? (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="johndoe"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                    data-testid="input-username"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="john@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    data-testid="input-email"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    data-testid="input-password"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="department">Department</Label>
+                  <Input
+                    id="department"
+                    type="text"
+                    placeholder="Engineering"
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    data-testid="input-department"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="role">Role</Label>
+                  <Select value={role} onValueChange={setRole}>
+                    <SelectTrigger id="role" data-testid="select-role">
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="employee">Employee</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="usernameOrEmail">Username or Email</Label>
+                  <Input
+                    id="usernameOrEmail"
+                    type="text"
+                    placeholder="username or email"
+                    value={usernameOrEmail}
+                    onChange={(e) => setUsernameOrEmail(e.target.value)}
+                    required
+                    data-testid="input-username-email"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    data-testid="input-password"
+                  />
+                </div>
+              </>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="admin@workforce.ai"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                data-testid="input-email"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                data-testid="input-password"
-              />
-            </div>
             <Button 
               type="submit" 
               className="w-full" 

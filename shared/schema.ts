@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, jsonb, real } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -9,6 +9,25 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   role: text("role").notNull().default("employee"),
+  department: text("department"),
+  tower: text("tower"),
+  roleTitle: text("role_title"),
+  fitmentScore: real("fitment_score").default(0.0),
+  productivity: real("productivity").default(0),
+  utilization: real("utilization").default(0),
+  softskills: jsonb("softskills").$type<{
+    communication?: number;
+    teamwork?: number;
+    adaptability?: number;
+    problemSolving?: number;
+    creativity?: number;
+    workEthic?: number;
+    interpersonal?: number;
+    timeManagement?: number;
+    leadership?: number;
+    attentionToDetail?: number;
+  }>(),
+  resumeFileId: text("resume_file_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -82,13 +101,37 @@ export const insertCvSchema = createInsertSchema(cvs).omit({
 export type InsertCv = z.infer<typeof insertCvSchema>;
 export type Cv = typeof cvs.$inferSelect;
 
+export const uploads = pgTable("uploads", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  originalName: text("original_name").notNull(),
+  storedName: text("stored_name").notNull(),
+  type: text("type").notNull(),
+  uploader: varchar("uploader").notNull().references(() => users.id),
+  parsed: integer("parsed").notNull().default(0),
+  meta: jsonb("meta"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertUploadSchema = createInsertSchema(uploads).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertUpload = z.infer<typeof insertUploadSchema>;
+export type Upload = typeof uploads.$inferSelect;
+
 export const activities = pgTable("activities", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  employeeId: varchar("employee_id").notNull().references(() => employees.id),
-  taskName: text("task_name").notNull(),
-  hoursSpent: integer("hours_spent").notNull(),
+  user: varchar("user").notNull().references(() => users.id),
+  activityType: text("activity_type").notNull(),
+  tower: text("tower"),
+  category: text("category"),
   date: timestamp("date").notNull(),
-  status: text("status").notNull().default("pending"),
+  durationMinutes: integer("duration_minutes").notNull(),
+  source: text("source"),
+  taskName: text("task_name"),
+  hoursSpent: integer("hours_spent"),
+  status: text("status").default("pending"),
   projectId: text("project_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

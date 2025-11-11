@@ -1,10 +1,8 @@
-import { Users, Briefcase, TrendingUp, AlertTriangle } from "lucide-react";
+import { Users, Briefcase, TrendingUp, AlertTriangle, FileText, UserCheck } from "lucide-react";
 import { KPICard } from "@/components/KPICard";
-import { WorkDistributionChart } from "@/components/WorkDistributionChart";
-import { FitmentScoreChart } from "@/components/FitmentScoreChart";
-import { ProductivityChart } from "@/components/ProductivityChart";
 import { RecentActivityFeed } from "@/components/RecentActivityFeed";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
 
 export default function Dashboard() {
@@ -55,16 +53,54 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <WorkDistributionChart />
-        <FitmentScoreChart />
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Quick Stats
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">CVs Uploaded</span>
+              <span className="text-2xl font-bold">156</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Job Descriptions</span>
+              <span className="text-2xl font-bold">42</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Fitment Matches</span>
+              <span className="text-2xl font-bold">89</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <UserCheck className="h-5 w-5" />
+              Top Performers
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Sarah Johnson</span>
+              <span className="text-sm font-medium">95% Fitment</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Mike Chen</span>
+              <span className="text-sm font-medium">92% Fitment</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Emma Wilson</span>
+              <span className="text-sm font-medium">90% Fitment</span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <ProductivityChart />
-        </div>
-        <RecentActivityFeed />
-      </div>
+      <RecentActivityFeed />
     </div>
   );
 }

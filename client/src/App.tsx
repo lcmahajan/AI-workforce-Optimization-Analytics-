@@ -35,6 +35,32 @@ function ProtectedRoute({ component: Component }: { component: () => JSX.Element
   return <Component />;
 }
 
+function AdminRoute({ component: Component }: { component: () => JSX.Element }) {
+  const { user, isLoading } = useAuth();
+  const [location] = useLocation();
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+
+  if (!user) {
+    return <Redirect to="/login" />;
+  }
+
+  if (user.role !== "admin") {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold mb-2">Access Denied</h1>
+          <p className="text-muted-foreground">You need administrator privileges to access this page.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <Component />;
+}
+
 function Router() {
   const { user } = useAuth();
 

@@ -82,22 +82,28 @@ Preferred communication style: Simple, everyday language.
 
 **Schema Design**:
 
-**Users Table**: Authentication and role management
-- Fields: id, username, email, password (hashed), role, createdAt
+**Users Table**: Consolidated authentication and employee profile (aligned with Mongoose User model)
+- Authentication: id, username, email, password (hashed), role, createdAt
+- Employee Profile: department, tower, roleTitle, fitmentScore, productivity, utilization
+- Skills & Resume: softskills (JSONB object), resumeFileId (FK to uploads)
 - Roles: employee, admin
-
-**Employees Table**: Employee profile and metrics
-- Fields: id, name, position, department, email, phone, status, userId (FK), fitmentScore, createdAt, updatedAt
-- Links to users table for authentication
+- **Note**: The separate employees table has been removed - all employee data is now in users table
 
 **Job Descriptions Table**: JD storage and requirements
-- Fields: id, title, description, requirements (JSONB for structured data)
+- Fields: id, title, description, requirements (JSONB), department, uploadedBy (FK to users), fileUrl, createdAt
 
-**CVs Table**: Candidate resume storage
-- Stores uploaded CV metadata and parsed content
+**CVs Table**: Candidate resume metadata
+- Fields: id, candidateName, email, skills (JSONB array), experience, education, uploadedBy (FK to users), fileUrl (FK to uploads.id), createdAt
+- **Note**: Raw file content stored in uploads.meta.fileContent
 
-**Activities Table**: Employee activity and task tracking
-- Tracks work logs, tasks, and productivity metrics
+**Uploads Table**: File metadata tracking
+- Fields: id, originalName, storedName, type (jd/cv/activity), uploader (FK to users), parsed (0/1), meta (JSONB with file content), createdAt
+- Used for tracking all uploaded files (JDs, CVs, activity CSVs)
+
+**Activities Table**: Employee activity and task tracking (aligned with Mongoose ActivityLog model)
+- Required: id, user (FK to users.id), activityType, date, durationMinutes, createdAt
+- Optional: tower, category, source, taskName, hoursSpent, status, projectId
+- **Note**: Changed from employeeId to user FK; supports both new (activityType, tower, category) and legacy (taskName, hoursSpent) fields
 
 **Fitment Scores Table**: AI-generated employee-to-role fit scores
 - Calculated scores linking employees to job descriptions
@@ -143,11 +149,13 @@ Preferred communication style: Simple, everyday language.
 
 **Implemented API Endpoints**:
 - Authentication: POST /api/auth/register, POST /api/auth/login
-- Employees: GET/POST/PUT/DELETE /api/employees
-- Job Descriptions: GET/POST /api/job-descriptions
-- CVs: GET/POST /api/cvs
-- Activities: GET/POST /api/activities, POST /api/uploads/activity (CSV bulk upload)
-- File Uploads: POST /api/uploads/jd, POST /api/uploads/cv (with multer)
+- Users: GET /api/users, GET /api/users/:id, PUT /api/users/:id, DELETE /api/users/:id (primary endpoints)
+- Employees: GET/POST/PUT/DELETE /api/employees (backward compatibility adapters to /api/users)
+- Job Descriptions: GET/POST /api/job-descriptions (includes uploadedBy field)
+- CVs: GET/POST /api/cvs (links to uploads table via fileUrl)
+- Uploads: GET /api/uploads, GET /api/uploads/:id (file metadata tracking)
+- Activities: GET/POST /api/activities (supports both employeeId and user fields for backward compat), POST /api/uploads/activity (CSV bulk upload)
+- File Uploads: POST /api/uploads/jd, POST /api/uploads/cv (creates upload + cv/jd records with proper linkage)
 - Analytics: GET /api/analytics/overview (productivity, utilization, fitment summary), GET /api/analytics/employee/:id (employee-level analytics)
 - Fitment: POST /api/fitment/assess (renamed from calculate for consistency)
 - Settings: PUT /api/settings/password (password change with validation)
@@ -156,13 +164,24 @@ Preferred communication style: Simple, everyday language.
 - Fatigue: GET /api/fatigue/analysis
 - Optimization: GET /api/optimization/recommendations
 
+**Recent Changes (November 11, 2025)**:
+- ✅ Aligned PostgreSQL schema with Mongoose specifications
+- ✅ Consolidated employees table into users table (single User model)
+- ✅ Created uploads table for file metadata tracking
+- ✅ Updated activities table with new fields (activityType, tower, category, durationMinutes, source)
+- ✅ Refactored storage layer to user-centric methods
+- ✅ Created /api/users endpoints with backward compatibility via /api/employees
+- ✅ Fixed CV upload route to properly use uploads table and cvs table schema
+- ✅ Database migration successfully applied
+
 **Frontend Integration Status**:
 - ✅ Authentication fully connected (login, register, logout, protected routes)
-- ✅ Backend APIs implemented and tested
-- ⚠️ Individual pages still use mock data (need to connect to backend APIs)
-- Next steps: Update Dashboard, Employees, Analytics, Fatigue, and Optimization pages to fetch real data
+- ✅ Backend APIs implemented and tested with new schema
+- ⚠️ Individual pages still use mock data (need to connect to /api/users endpoints)
+- Next steps: Update Dashboard, Employees, Analytics, Fatigue, and Optimization pages to fetch real data from /api/users
 
 **Known Limitations**:
 - JWT tokens stored in localStorage (vulnerable to XSS) - acceptable for MVP/demo, should use HTTP-only cookies for production
 - Fitment scoring uses placeholder algorithm - needs real AI/ML implementation
-- Some pages still display mock data instead of real backend data
+- Frontend pages still display mock data instead of real backend data
+- CV upload endpoint tested successfully via database verification (multipart test environment limitation)

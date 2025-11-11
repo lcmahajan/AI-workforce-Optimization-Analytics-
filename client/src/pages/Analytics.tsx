@@ -1,6 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { TrendingUp, Building2, Users } from "lucide-react";
+import { WorkDistributionChart } from "@/components/WorkDistributionChart";
+import { ProductivityChart } from "@/components/ProductivityChart";
+import { FitmentScoreChart } from "@/components/FitmentScoreChart";
 
 export default function Analytics() {
   return (
@@ -56,19 +59,12 @@ export default function Analytics() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Process Overview</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Visualize process metrics and trends over time
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-64 border-2 border-dashed rounded-md bg-muted/20">
-            <p className="text-muted-foreground text-sm">Chart visualization area</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <WorkDistributionChart />
+        <FitmentScoreChart />
+      </div>
+
+      <ProductivityChart />
     </div>
   );
 }

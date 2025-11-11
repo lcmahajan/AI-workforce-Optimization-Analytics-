@@ -235,8 +235,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // File Upload and CSV Parsing
-  app.post("/api/upload/csv", authMiddleware, upload.single("file"), async (req, res) => {
+  // File Upload Routes
+  app.post("/api/uploads/jd", authMiddleware, requireAdmin, upload.single("file"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const { title, requirements } = req.body;
+      const fileContent = req.file.buffer.toString("utf-8");
+
+      const jd = await storage.createJobDescription({
+        title: title || req.file.originalname,
+        description: fileContent,
+        requirements: requirements ? JSON.parse(requirements) : {},
+      });
+
+      res.json({ success: true, jobDescription: jd });
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to upload JD" });
+    }
+  });
+
+  app.post("/api/uploads/cv", authMiddleware, requireAdmin, upload.single("file"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const { candidateName, email } = req.body;
+      const fileContent = req.file.buffer.toString("utf-8");
+
+      const cv = await storage.createCv({
+        candidateName: candidateName || "Unknown",
+        email: email || "",
+        content: fileContent,
+        skills: [],
+      });
+
+      res.json({ success: true, cv });
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to upload CV" });
+    }
+  });
+
+  app.post("/api/uploads/activity", authMiddleware, upload.single("file"), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
@@ -286,6 +329,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Analytics Routes
+  app.get("/api/analytics/overview", authMiddleware, async (req, res) => {
+    try {
+      const employees = await storage.getAllEmployees();
+      const activities = await storage.getAllActivities();
+      const fitmentScores = await storage.getAllFitmentScores();
+
+      const totalHours = activities.reduce((sum, a) => sum + a.hoursSpent, 0);
+      const completedTasks = activities.filter(a => a.status === "completed").length;
+      const avgFitment = fitmentScores.length > 0 
+        ? Math.round(fitmentScores.reduce((sum, f) => sum + f.score, 0) / fitmentScores.length)
+        : 0;
+
+      const utilization = employees.length > 0 
+        ? Math.round((totalHours / (employees.length * 160)) * 100)
+        : 0;
+
+      res.json({
+        productivity: completedTasks > 0 ? Math.round((completedTasks / activities.length) * 100) : 0,
+        utilization,
+        fitmentScore: avgFitment,
+        totalEmployees: employees.length,
+        totalTasks: activities.length,
+        completedTasks,
+        totalHours,
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to fetch analytics overview" });
+    }
+  });
+
+  app.get("/api/analytics/employee/:id", authMiddleware, async (req, res) => {
+    try {
+      const employee = await storage.getEmployee(req.params.id);
+      if (!employee) {
+        return res.status(404).json({ error: "Employee not found" });
+      }
+
+      const activities = await storage.getActivitiesByEmployee(req.params.id);
+      const totalHours = activities.reduce((sum, a) => sum + a.hoursSpent, 0);
+      const completedTasks = activities.filter(a => a.status === "completed").length;
+
+      res.json({
+        employee,
+        totalTasks: activities.length,
+        completedTasks,
+        totalHours,
+        completionRate: activities.length > 0 ? Math.round((completedTasks / activities.length) * 100) : 0,
+        avgHoursPerWeek: Math.round(totalHours / 4),
+        recentActivities: activities.slice(0, 10),
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to fetch employee analytics" });
+    }
+  });
+
   app.get("/api/analytics/work-distribution", authMiddleware, async (req, res) => {
     try {
       const { startDate, endDate } = req.query;
@@ -344,7 +442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/fitment/calculate", authMiddleware, async (req, res) => {
+  app.post("/api/fitment/assess", authMiddleware, async (req, res) => {
     try {
       const { jobDescriptionId, cvId } = req.body;
 
@@ -531,6 +629,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(recommendations);
     } catch (error: any) {
       res.status(500).json({ error: "Failed to generate recommendations" });
+    }
+  });
+
+  // Settings Routes
+  app.put("/api/settings/password", authMiddleware, async (req: AuthRequest, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: "Current and new password required" });
+      }
+
+      const user = await storage.getUserById(req.user!.id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const isValid = await comparePassword(currentPassword, user.password);
+      if (!isValid) {
+        return res.status(401).json({ error: "Current password is incorrect" });
+      }
+
+      const hashedPassword = await hashPassword(newPassword);
+      await storage.updateUserPassword(user.id, hashedPassword);
+
+      res.json({ success: true, message: "Password updated successfully" });
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to update password" });
+    }
+  });
+
+  // Documentation Route
+  app.get("/api/docs", authMiddleware, async (req, res) => {
+    try {
+      const docs = {
+        title: "WorkForce AI Platform Documentation",
+        version: "1.0.0",
+        sections: [
+          {
+            title: "Getting Started",
+            content: "Welcome to the WorkForce AI Platform. This system helps optimize workforce allocation and track productivity metrics.",
+          },
+          {
+            title: "Employee Management",
+            content: "Manage employee profiles, track performance, and analyze fitment scores.",
+          },
+          {
+            title: "Analytics",
+            content: "View comprehensive analytics including work distribution, productivity metrics, and fatigue analysis.",
+          },
+          {
+            title: "Optimization",
+            content: "Get AI-powered recommendations for workforce optimization and task redistribution.",
+          },
+        ],
+      };
+      res.json(docs);
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to fetch documentation" });
+    }
+  });
+
+  // Reports Export Route
+  app.get("/api/reports/export", authMiddleware, async (req, res) => {
+    try {
+      const { type = "csv", startDate, endDate } = req.query;
+
+      const employees = await storage.getAllEmployees();
+      const activities = await storage.getAllActivities();
+
+      if (type === "csv") {
+        const csvData = [
+          ["Employee Name", "Position", "Department", "Total Tasks", "Completed Tasks", "Total Hours"],
+          ...employees.map(emp => {
+            const empActivities = activities.filter(a => a.employeeId === emp.id);
+            const completed = empActivities.filter(a => a.status === "completed").length;
+            const totalHours = empActivities.reduce((sum, a) => sum + a.hoursSpent, 0);
+            
+            return [
+              emp.name,
+              emp.position,
+              emp.department,
+              empActivities.length.toString(),
+              completed.toString(),
+              totalHours.toString(),
+            ];
+          }),
+        ];
+
+        const csv = csvData.map(row => row.join(",")).join("\n");
+        
+        res.setHeader("Content-Type", "text/csv");
+        res.setHeader("Content-Disposition", "attachment; filename=workforce-report.csv");
+        res.send(csv);
+      } else {
+        res.json({
+          employees,
+          activities,
+          summary: {
+            totalEmployees: employees.length,
+            totalActivities: activities.length,
+            completedActivities: activities.filter(a => a.status === "completed").length,
+          },
+        });
+      }
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to export report" });
     }
   });
 

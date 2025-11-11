@@ -741,6 +741,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Settings Management (Admin-only for system settings)
+  app.get("/api/settings", authMiddleware, async (req, res) => {
+    try {
+      const settings = await storage.getAllSettings();
+      res.json(settings);
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to fetch settings" });
+    }
+  });
+
+  app.get("/api/settings/:key", authMiddleware, async (req, res) => {
+    try {
+      const setting = await storage.getSetting(req.params.key);
+      if (!setting) {
+        return res.status(404).json({ error: "Setting not found" });
+      }
+      res.json(setting);
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to fetch setting" });
+    }
+  });
+
+  app.put("/api/settings/:key", authMiddleware, requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const { value, category, description } = req.body;
+      
+      if (value === undefined) {
+        return res.status(400).json({ error: "Value is required" });
+      }
+
+      const setting = await storage.upsertSetting(
+        req.params.key,
+        value,
+        category || "general",
+        description,
+        req.user!.id
+      );
+
+      res.json(setting);
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to update setting" });
+    }
+  });
+
+  app.delete("/api/settings/:key", authMiddleware, requireAdmin, async (req, res) => {
+    try {
+      const deleted = await storage.deleteSetting(req.params.key);
+      if (!deleted) {
+        return res.status(404).json({ error: "Setting not found" });
+      }
+      res.json({ success: true, message: "Setting deleted successfully" });
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to delete setting" });
+    }
+  });
+
   // Documentation Route
   app.get("/api/docs", authMiddleware, async (req, res) => {
     try {

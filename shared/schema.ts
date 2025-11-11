@@ -140,3 +140,21 @@ export const insertFitmentScoreSchema = createInsertSchema(fitmentScores).omit({
 
 export type InsertFitmentScore = z.infer<typeof insertFitmentScoreSchema>;
 export type FitmentScore = typeof fitmentScores.$inferSelect;
+
+export const settings = pgTable("settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  key: text("key").notNull().unique(),
+  value: jsonb("value").notNull(),
+  category: text("category").notNull().default("general"),
+  description: text("description"),
+  updatedBy: varchar("updated_by").references(() => users.id),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertSettingSchema = createInsertSchema(settings).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertSetting = z.infer<typeof insertSettingSchema>;
+export type Setting = typeof settings.$inferSelect;

@@ -6,6 +6,7 @@ import {
   activities,
   fitmentScores,
   uploads,
+  settings,
   type User,
   type InsertUser,
   type JobDescription,
@@ -18,6 +19,8 @@ import {
   type InsertFitmentScore,
   type Upload,
   type InsertUpload,
+  type Setting,
+  type InsertSetting,
 } from "@shared/schema";
 import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
 
@@ -65,6 +68,13 @@ export interface IStorage {
   getUploadsByUser(uploaderId: string): Promise<Upload[]>;
   createUpload(upload: InsertUpload): Promise<Upload>;
   updateUpload(id: string, data: Partial<InsertUpload>): Promise<Upload | undefined>;
+
+  // Settings
+  getAllSettings(): Promise<Setting[]>;
+  getSetting(key: string): Promise<Setting | undefined>;
+  getSettingsByCategory(category: string): Promise<Setting[]>;
+  upsertSetting(key: string, value: any, category: string, description?: string, updatedBy?: string): Promise<Setting>;
+  deleteSetting(key: string): Promise<boolean>;
 }
 
 export class DbStorage implements IStorage {
@@ -235,6 +245,41 @@ export class DbStorage implements IStorage {
   async updateUpload(id: string, data: Partial<InsertUpload>): Promise<Upload | undefined> {
     const result = await db.update(uploads).set(data).where(eq(uploads.id, id)).returning();
     return result[0];
+  }
+
+  // Settings
+  async getAllSettings(): Promise<Setting[]> {
+    return db.select().from(settings).orderBy(settings.category, settings.key);
+  }
+
+  async getSetting(key: string): Promise<Setting | undefined> {
+    const result = await db.select().from(settings).where(eq(settings.key, key)).limit(1);
+    return result[0];
+  }
+
+  async getSettingsByCategory(category: string): Promise<Setting[]> {
+    return db.select().from(settings).where(eq(settings.category, category)).orderBy(settings.key);
+  }
+
+  async upsertSetting(key: string, value: any, category: string = "general", description?: string, updatedBy?: string): Promise<Setting> {
+    const existing = await this.getSetting(key);
+    
+    if (existing) {
+      const result = await db
+        .update(settings)
+        .set({ value, category, description, updatedBy, updatedAt: new Date() })
+        .where(eq(settings.key, key))
+        .returning();
+      return result[0];
+    } else {
+      const result = await db.insert(settings).values({ key, value, category, description, updatedBy }).returning();
+      return result[0];
+    }
+  }
+
+  async deleteSetting(key: string): Promise<boolean> {
+    const result = await db.delete(settings).where(eq(settings.key, key)).returning();
+    return result.length > 0;
   }
 }
 

@@ -320,18 +320,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No file uploaded" });
       }
 
-      const { candidateName, email } = req.body;
+      const { candidateName, email, skills, experience, education } = req.body;
       const fileContent = req.file.buffer.toString("utf-8");
 
+      // Create upload record for file metadata
+      const uploadRecord = await storage.createUpload({
+        originalName: req.file.originalname,
+        storedName: req.file.originalname,
+        type: "cv",
+        uploader: req.user!.id,
+        parsed: 0,
+        meta: { fileContent },
+      });
+
+      // Create CV record
       const cv = await storage.createCv({
         candidateName: candidateName || "Unknown",
         email: email || "",
-        content: fileContent,
-        skills: [],
+        skills: skills ? JSON.parse(skills) : [],
+        experience: experience || "",
+        education: education || "",
         uploadedBy: req.user!.id,
+        fileUrl: uploadRecord.id,
       });
 
-      res.json({ success: true, cv });
+      res.json({ success: true, cv, upload: uploadRecord });
     } catch (error: any) {
       res.status(500).json({ error: "Failed to upload CV" });
     }

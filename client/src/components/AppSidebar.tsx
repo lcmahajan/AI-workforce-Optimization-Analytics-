@@ -9,6 +9,7 @@ import {
   Zap,
   Brain,
   AlertCircle,
+  LogOut,
 } from "lucide-react";
 import {
   Sidebar,
@@ -23,6 +24,9 @@ import {
 } from "@/components/ui/sidebar";
 import { Link, useLocation } from "wouter";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth";
+import { queryClient } from "@/lib/queryClient";
 
 const menuItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -47,7 +51,14 @@ const systemItems = [
 ];
 
 export function AppSidebar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    queryClient.clear();
+    setLocation("/login");
+  };
 
   return (
     <Sidebar>
@@ -130,16 +141,30 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4">
+      <SidebarFooter className="p-4 space-y-2">
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="text-xs font-semibold text-primary">AD</span>
+            <span className="text-xs font-semibold text-primary">
+              {user?.name?.substring(0, 2).toUpperCase() || "??"}
+            </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">Admin User</p>
-            <Badge variant="secondary" className="text-xs">Admin</Badge>
+            <p className="text-sm font-medium truncate">{user?.name || "Unknown"}</p>
+            <Badge variant="secondary" className="text-xs capitalize">
+              {user?.role || "User"}
+            </Badge>
           </div>
         </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full" 
+          onClick={handleLogout}
+          data-testid="button-logout"
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Logout
+        </Button>
       </SidebarFooter>
     </Sidebar>
   );

@@ -1,0 +1,67 @@
+6) Database schemas (Mongoose) — essential ones (sample code)
+models/User.js
+const mongoose = require('mongoose');
+
+const UserSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true, lowercase: true },
+  passwordHash: { type: String, required: true },
+  role: { type: String, enum: ['employee','admin'], default: 'employee' },
+  department: { type: String },
+  tower: { type: String },     // e.g., R2R, Finance, etc.
+  roleTitle: { type: String }, // role name
+  fitmentScore: { type: Number, default: 0.0 }, // 0.0 - 5.0
+  productivity: { type: Number, default: 0 }, // %
+  utilization: { type: Number, default: 0 }, // %
+  softskills: {
+    communication: Number,
+    teamwork: Number,
+    adaptability: Number,
+    problemSolving: Number,
+    creativity: Number,
+    workEthic: Number,
+    interpersonal: Number,
+    timeManagement: Number,
+    leadership: Number,
+    attentionToDetail: Number
+  },
+  resumeFileId: String, // ref to file storage
+  createdAt: { type: Date, default: Date.now },
+});
+
+module.exports = mongoose.model('User', UserSchema);
+
+models/Upload.js (metadata)
+const UploadSchema = new mongoose.Schema({
+  originalName: String,
+  storedName: String,
+  type: { type: String }, // 'jd'|'cv'|'activity'
+  uploader: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  parsed: { type: Boolean, default: false },
+  meta: mongoose.Schema.Types.Mixed,
+  createdAt: { type: Date, default: Date.now }
+});
+module.exports = mongoose.model('Upload', UploadSchema);
+
+models/ActivityLog.js
+const ActivitySchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  activityType: String,
+  tower: String,
+  category: String, // Processing | Decision | Analysis | Support
+  date: Date,
+  durationMinutes: Number,
+  source: String,
+  createdAt: { type: Date, default: Date.now }
+});
+module.exports = mongoose.model('ActivityLog', ActivitySchema);
+
+7) Auth flow & middleware (sample)
+
+On register: hash password (bcrypt.hash) → save passwordHash
+
+On login: compare, sign JWT with payload {id,role}, set expiry (e.g., 8h)
+
+Middleware auth.js reads Authorization: Bearer <token>; requireAdmin checks req.user.role === 'admin'
+
+Frontend stores JWT in memory or secure httpOnly cookie (prefer cookies for security).

@@ -146,9 +146,13 @@ Preferred communication style: Simple, everyday language.
 - Employees: GET/POST/PUT/DELETE /api/employees
 - Job Descriptions: GET/POST /api/job-descriptions
 - CVs: GET/POST /api/cvs
-- Activities: GET/POST /api/activities, POST /api/activities/upload (CSV)
-- Analytics: GET /api/analytics/work-distribution, GET /api/analytics/productivity
-- Fitment: POST /api/fitment/calculate
+- Activities: GET/POST /api/activities, POST /api/uploads/activity (CSV bulk upload)
+- File Uploads: POST /api/uploads/jd, POST /api/uploads/cv (with multer)
+- Analytics: GET /api/analytics/overview (productivity, utilization, fitment summary), GET /api/analytics/employee/:id (employee-level analytics)
+- Fitment: POST /api/fitment/assess (renamed from calculate for consistency)
+- Settings: PUT /api/settings/password (password change with validation)
+- Documentation: GET /api/docs (structured platform documentation)
+- Reports: GET /api/reports/export (CSV/JSON export with employee statistics)
 - Fatigue: GET /api/fatigue/analysis
 - Optimization: GET /api/optimization/recommendations
 

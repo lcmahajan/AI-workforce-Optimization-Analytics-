@@ -17,10 +17,16 @@ import {
   insertCvSchema,
   insertActivitySchema,
 } from "@shared/schema";
+import { createAuditMiddleware } from "./middleware/audit";
+import { registerGDPRRoutes } from "./routes/gdpr";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  app.use(createAuditMiddleware(storage));
+
+  registerGDPRRoutes(app, storage);
+
   // Authentication Routes
   app.post("/api/auth/register", async (req, res) => {
     try {

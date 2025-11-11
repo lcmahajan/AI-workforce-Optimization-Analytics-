@@ -7,6 +7,8 @@ import {
   fitmentScores,
   uploads,
   settings,
+  auditLogs,
+  fitmentExplanations,
   type User,
   type InsertUser,
   type JobDescription,
@@ -21,6 +23,10 @@ import {
   type InsertUpload,
   type Setting,
   type InsertSetting,
+  type AuditLog,
+  type InsertAuditLog,
+  type FitmentExplanation,
+  type InsertFitmentExplanation,
 } from "@shared/schema";
 import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
 
@@ -75,6 +81,30 @@ export interface IStorage {
   getSettingsByCategory(category: string): Promise<Setting[]>;
   upsertSetting(key: string, value: any, category: string, description?: string, updatedBy?: string): Promise<Setting>;
   deleteSetting(key: string): Promise<boolean>;
+
+  // Audit Logs
+  getAllAuditLogs(): Promise<AuditLog[]>;
+  getAuditLogsByUser(userId: string): Promise<AuditLog[]>;
+  getAuditLogsByResource(resource: string, resourceId?: string): Promise<AuditLog[]>;
+  createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
+  anonymizeAuditLogs(userId: string): Promise<void>;
+
+  // Fitment Explanations
+  getFitmentExplanation(employeeId: string, jobDescriptionId: string): Promise<FitmentExplanation | undefined>;
+  getFitmentExplanationsByEmployee(employeeId: string): Promise<FitmentExplanation[]>;
+  getFitmentExplanationsByJob(jobDescriptionId: string): Promise<FitmentExplanation[]>;
+  createFitmentExplanation(explanation: InsertFitmentExplanation): Promise<FitmentExplanation>;
+
+  // GDPR Operations
+  deleteActivitiesByUser(userId: string): Promise<void>;
+  deleteFitmentExplanationsByUser(userId: string): Promise<void>;
+  deleteFitmentExplanationsByJob(jobDescriptionId: string): Promise<void>;
+  deleteFitmentScoresByJob(jobDescriptionId: string): Promise<void>;
+  deleteFitmentScoresByCv(cvId: string): Promise<void>;
+  deleteCvsByUser(userId: string): Promise<void>;
+  deleteJobDescriptionsByUser(userId: string): Promise<void>;
+  deleteSettingsByUser(userId: string): Promise<void>;
+  deleteUpload(id: string): Promise<boolean>;
 }
 
 export class DbStorage implements IStorage {
@@ -279,6 +309,103 @@ export class DbStorage implements IStorage {
 
   async deleteSetting(key: string): Promise<boolean> {
     const result = await db.delete(settings).where(eq(settings.key, key)).returning();
+    return result.length > 0;
+  }
+
+  // Audit Logs
+  async getAllAuditLogs(): Promise<AuditLog[]> {
+    return db.select().from(auditLogs).orderBy(desc(auditLogs.timestamp)).limit(1000);
+  }
+
+  async getAuditLogsByUser(userId: string): Promise<AuditLog[]> {
+    return db.select().from(auditLogs).where(eq(auditLogs.userId, userId)).orderBy(desc(auditLogs.timestamp));
+  }
+
+  async getAuditLogsByResource(resource: string, resourceId?: string): Promise<AuditLog[]> {
+    if (resourceId) {
+      return db.select().from(auditLogs).where(
+        and(eq(auditLogs.resource, resource), eq(auditLogs.resourceId, resourceId))
+      ).orderBy(desc(auditLogs.timestamp));
+    }
+    return db.select().from(auditLogs).where(eq(auditLogs.resource, resource)).orderBy(desc(auditLogs.timestamp));
+  }
+
+  async createAuditLog(log: InsertAuditLog): Promise<AuditLog> {
+    const result = await db.insert(auditLogs).values(log).returning();
+    return result[0];
+  }
+
+  async anonymizeAuditLogs(userId: string): Promise<void> {
+    await db.update(auditLogs).set({ 
+      userId: null,
+      ipAddress: "[ANONYMIZED]",
+      userAgent: "[ANONYMIZED]"
+    }).where(eq(auditLogs.userId, userId));
+  }
+
+  // Fitment Explanations
+  async getFitmentExplanation(employeeId: string, jobDescriptionId: string): Promise<FitmentExplanation | undefined> {
+    const result = await db.select().from(fitmentExplanations).where(
+      and(
+        eq(fitmentExplanations.employeeId, employeeId),
+        eq(fitmentExplanations.jobDescriptionId, jobDescriptionId)
+      )
+    ).orderBy(desc(fitmentExplanations.calculatedAt)).limit(1);
+    return result[0];
+  }
+
+  async getFitmentExplanationsByEmployee(employeeId: string): Promise<FitmentExplanation[]> {
+    return db.select().from(fitmentExplanations)
+      .where(eq(fitmentExplanations.employeeId, employeeId))
+      .orderBy(desc(fitmentExplanations.calculatedAt));
+  }
+
+  async getFitmentExplanationsByJob(jobDescriptionId: string): Promise<FitmentExplanation[]> {
+    return db.select().from(fitmentExplanations)
+      .where(eq(fitmentExplanations.jobDescriptionId, jobDescriptionId))
+      .orderBy(desc(fitmentExplanations.calculatedAt));
+  }
+
+  async createFitmentExplanation(explanation: InsertFitmentExplanation): Promise<FitmentExplanation> {
+    const result = await db.insert(fitmentExplanations).values(explanation).returning();
+    return result[0];
+  }
+
+  // GDPR Operations
+  async deleteActivitiesByUser(userId: string): Promise<void> {
+    await db.delete(activities).where(eq(activities.user, userId));
+  }
+
+  async deleteFitmentExplanationsByUser(userId: string): Promise<void> {
+    await db.delete(fitmentExplanations).where(eq(fitmentExplanations.employeeId, userId));
+  }
+
+  async deleteFitmentExplanationsByJob(jobDescriptionId: string): Promise<void> {
+    await db.delete(fitmentExplanations).where(eq(fitmentExplanations.jobDescriptionId, jobDescriptionId));
+  }
+
+  async deleteFitmentScoresByJob(jobDescriptionId: string): Promise<void> {
+    await db.delete(fitmentScores).where(eq(fitmentScores.jobDescriptionId, jobDescriptionId));
+  }
+
+  async deleteFitmentScoresByCv(cvId: string): Promise<void> {
+    await db.delete(fitmentScores).where(eq(fitmentScores.cvId, cvId));
+  }
+
+  async deleteCvsByUser(userId: string): Promise<void> {
+    await db.delete(cvs).where(eq(cvs.uploadedBy, userId));
+  }
+
+  async deleteJobDescriptionsByUser(userId: string): Promise<void> {
+    await db.delete(jobDescriptions).where(eq(jobDescriptions.uploadedBy, userId));
+  }
+
+  async deleteSettingsByUser(userId: string): Promise<void> {
+    await db.delete(settings).where(eq(settings.updatedBy, userId));
+  }
+
+  async deleteUpload(id: string): Promise<boolean> {
+    const result = await db.delete(uploads).where(eq(uploads.id, id)).returning();
     return result.length > 0;
   }
 }

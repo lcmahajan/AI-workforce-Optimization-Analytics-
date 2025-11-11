@@ -158,3 +158,61 @@ export const insertSettingSchema = createInsertSchema(settings).omit({
 
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
 export type Setting = typeof settings.$inferSelect;
+
+export const auditLogs = pgTable("audit_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  action: text("action").notNull(),
+  resource: text("resource").notNull(),
+  resourceId: text("resource_id"),
+  method: text("method").notNull(),
+  endpoint: text("endpoint").notNull(),
+  statusCode: integer("status_code"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  changes: jsonb("changes").$type<{
+    before?: any;
+    after?: any;
+  }>(),
+  metadata: jsonb("metadata"),
+  timestamp: timestamp("timestamp").notNull().defaultNow(),
+});
+
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  timestamp: true,
+});
+
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type AuditLog = typeof auditLogs.$inferSelect;
+
+export const fitmentExplanations = pgTable("fitment_explanations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  employeeId: varchar("employee_id").notNull().references(() => users.id),
+  jobDescriptionId: varchar("job_description_id").notNull().references(() => jobDescriptions.id),
+  overallScore: real("overall_score").notNull(),
+  skillMatch: real("skill_match").notNull(),
+  experienceMatch: real("experience_match").notNull(),
+  culturalFit: real("cultural_fit").notNull(),
+  potentialGrowth: real("potential_growth").notNull(),
+  reasoning: text("reasoning").notNull(),
+  recommendations: jsonb("recommendations").$type<string[]>(),
+  aiModel: text("ai_model"),
+  aiProvider: text("ai_provider"),
+  decisionFactors: jsonb("decision_factors").$type<{
+    skillsMatched?: string[];
+    skillsGap?: string[];
+    experienceYears?: number;
+    strengthAreas?: string[];
+    developmentAreas?: string[];
+  }>(),
+  calculatedAt: timestamp("calculated_at").notNull().defaultNow(),
+});
+
+export const insertFitmentExplanationSchema = createInsertSchema(fitmentExplanations).omit({
+  id: true,
+  calculatedAt: true,
+});
+
+export type InsertFitmentExplanation = z.infer<typeof insertFitmentExplanationSchema>;
+export type FitmentExplanation = typeof fitmentExplanations.$inferSelect;

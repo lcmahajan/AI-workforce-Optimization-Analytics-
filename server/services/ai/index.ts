@@ -23,7 +23,8 @@ export class AIServiceManager {
   async initializeAll(config: AIServiceConfig): Promise<void> {
     console.log("[AI Service Manager] Initializing all AI services...");
     
-    for (const [name, service] of this.services.entries()) {
+    const entries = Array.from(this.services.entries());
+    for (const [name, service] of entries) {
       try {
         const success = await service.initialize(config);
         console.log(`[AI Service Manager] ${name}: ${success ? 'initialized' : 'disabled/failed'}`);

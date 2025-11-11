@@ -30,7 +30,8 @@ export class ConnectorManager {
   }
 
   async disconnectAll(): Promise<void> {
-    for (const [name, connector] of this.connectors.entries()) {
+    const entries = Array.from(this.connectors.entries());
+    for (const [name, connector] of entries) {
       if (connector.isConnected && connector.isConnected()) {
         console.log(`Disconnecting ${name}...`);
         await connector.disconnect();

@@ -1,0 +1,146 @@
+import {
+  LayoutDashboard,
+  BarChart3,
+  Users,
+  Upload,
+  FileText,
+  Settings,
+  BookOpen,
+  Zap,
+  Brain,
+  AlertCircle,
+} from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarFooter,
+} from "@/components/ui/sidebar";
+import { Link, useLocation } from "wouter";
+import { Badge } from "@/components/ui/badge";
+
+const menuItems = [
+  { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Analytics", url: "/analytics", icon: BarChart3 },
+  { title: "Employees", url: "/employees", icon: Users },
+  { title: "Optimization", url: "/optimization", icon: Zap },
+];
+
+const dataItems = [
+  { title: "Upload Data", url: "/upload", icon: Upload },
+  { title: "Reports", url: "/reports", icon: FileText },
+];
+
+const insightsItems = [
+  { title: "Softskills", url: "/softskills", icon: Brain },
+  { title: "Fatigue Analysis", url: "/fatigue", icon: AlertCircle },
+];
+
+const systemItems = [
+  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Documentation", url: "/documentation", icon: BookOpen },
+];
+
+export function AppSidebar() {
+  const [location] = useLocation();
+
+  return (
+    <Sidebar>
+      <SidebarContent>
+        <div className="px-6 py-4">
+          <h1 className="text-xl font-bold text-foreground">WorkForce AI</h1>
+          <p className="text-xs text-muted-foreground">Optimization Platform</p>
+        </div>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Main</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={location === item.url}>
+                    <Link href={item.url} data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Data Management</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {dataItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={location === item.url}>
+                    <Link href={item.url} data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Insights</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {insightsItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={location === item.url}>
+                    <Link href={item.url} data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>System</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {systemItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={location === item.url}>
+                    <Link href={item.url} data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter className="p-4">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <span className="text-xs font-semibold text-primary">AD</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">Admin User</p>
+            <Badge variant="secondary" className="text-xs">Admin</Badge>
+          </div>
+        </div>
+      </SidebarFooter>
+    </Sidebar>
+  );
+}

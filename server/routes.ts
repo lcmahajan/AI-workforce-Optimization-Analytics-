@@ -296,6 +296,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // File Upload Routes
+  app.get("/api/uploads", authMiddleware, async (req, res) => {
+    try {
+      const uploads = await storage.getAllUploads();
+      res.json(uploads);
+    } catch (error: any) {
+      res.status(500).json({ error: "Failed to fetch uploads" });
+    }
+  });
+
   app.post("/api/uploads/jd", authMiddleware, requireAdmin, upload.single("file"), async (req: AuthRequest, res) => {
     try {
       if (!req.file) {
@@ -325,8 +334,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No file uploaded" });
       }
 
-      const { candidateName, email, skills, experience, education } = req.body;
       const fileContent = req.file.buffer.toString("utf-8");
+
+      // Basic CV parsing (MVP - extract key information from text)
+      const emailMatch = fileContent.match(/[\w.-]+@[\w.-]+\.\w+/);
+      const extractedEmail = emailMatch ? emailMatch[0] : "";
+
+      // Extract skills using common technical keywords
+      const skillKeywords = ["JavaScript", "TypeScript", "React", "Node.js", "Python", "Java", "SQL", "AWS", "Docker", "Kubernetes", "Git"];
+      const extractedSkills = skillKeywords.filter((skill) => 
+        fileContent.toLowerCase().includes(skill.toLowerCase())
+      );
+
+      // Try to extract name from first few lines (common CV pattern)
+      const lines = fileContent.split('\n').filter(line => line.trim().length > 0);
+      const candidateName = lines[0]?.trim() || req.file.originalname.replace(/\.(pdf|doc|docx)$/i, "");
+
+      // Extract experience section (look for keywords)
+      const experienceMatch = fileContent.match(/experience[:\s]+([\s\S]{0,500})/i);
+      const experience = experienceMatch ? experienceMatch[1].substring(0, 200) : "";
+
+      // Extract education section
+      const educationMatch = fileContent.match(/education[:\s]+([\s\S]{0,300})/i);
+      const education = educationMatch ? educationMatch[1].substring(0, 150) : "";
 
       // Create upload record for file metadata
       const uploadRecord = await storage.createUpload({
@@ -334,17 +364,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storedName: req.file.originalname,
         type: "cv",
         uploader: req.user!.id,
-        parsed: 0,
+        parsed: 1,
         meta: { fileContent },
       });
 
-      // Create CV record
+      // Create CV record with parsed data
       const cv = await storage.createCv({
-        candidateName: candidateName || "Unknown",
-        email: email || "",
-        skills: skills ? JSON.parse(skills) : [],
-        experience: experience || "",
-        education: education || "",
+        candidateName,
+        email: extractedEmail,
+        skills: extractedSkills,
+        experience,
+        education,
         uploadedBy: req.user!.id,
         fileUrl: uploadRecord.id,
       });

@@ -6,6 +6,7 @@ import {
   cvs,
   activities,
   fitmentScores,
+  uploads,
   type User,
   type InsertUser,
   type Employee,
@@ -18,6 +19,8 @@ import {
   type InsertActivity,
   type FitmentScore,
   type InsertFitmentScore,
+  type Upload,
+  type InsertUpload,
 } from "@shared/schema";
 import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
 
@@ -60,6 +63,14 @@ export interface IStorage {
   getFitmentScoresByJob(jobDescriptionId: string): Promise<FitmentScore[]>;
   getFitmentScore(jobDescriptionId: string, cvId: string): Promise<FitmentScore | undefined>;
   createFitmentScore(score: InsertFitmentScore): Promise<FitmentScore>;
+
+  // Uploads
+  getAllUploads(): Promise<Upload[]>;
+  getUpload(id: string): Promise<Upload | undefined>;
+  getUploadsByType(type: string): Promise<Upload[]>;
+  getUploadsByUser(uploaderId: string): Promise<Upload[]>;
+  createUpload(upload: InsertUpload): Promise<Upload>;
+  updateUpload(id: string, data: Partial<InsertUpload>): Promise<Upload | undefined>;
 }
 
 export class DbStorage implements IStorage {
@@ -212,6 +223,34 @@ export class DbStorage implements IStorage {
 
   async createFitmentScore(score: InsertFitmentScore): Promise<FitmentScore> {
     const result = await db.insert(fitmentScores).values(score).returning();
+    return result[0];
+  }
+
+  // Uploads
+  async getAllUploads(): Promise<Upload[]> {
+    return db.select().from(uploads).orderBy(desc(uploads.createdAt));
+  }
+
+  async getUpload(id: string): Promise<Upload | undefined> {
+    const result = await db.select().from(uploads).where(eq(uploads.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getUploadsByType(type: string): Promise<Upload[]> {
+    return db.select().from(uploads).where(eq(uploads.type, type)).orderBy(desc(uploads.createdAt));
+  }
+
+  async getUploadsByUser(uploaderId: string): Promise<Upload[]> {
+    return db.select().from(uploads).where(eq(uploads.uploader, uploaderId)).orderBy(desc(uploads.createdAt));
+  }
+
+  async createUpload(upload: InsertUpload): Promise<Upload> {
+    const result = await db.insert(uploads).values(upload).returning();
+    return result[0];
+  }
+
+  async updateUpload(id: string, data: Partial<InsertUpload>): Promise<Upload | undefined> {
+    const result = await db.update(uploads).set(data).where(eq(uploads.id, id)).returning();
     return result[0];
   }
 }

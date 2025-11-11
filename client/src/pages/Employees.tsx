@@ -1,117 +1,131 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { EmployeeCard } from "@/components/EmployeeCard";
-import { EmployeeTable } from "@/components/EmployeeTable";
-import { Plus, Grid, List } from "lucide-react";
-
-const mockEmployees = [
-  {
-    id: "1",
-    name: "Sarah Johnson",
-    role: "Senior Developer",
-    department: "Engineering",
-    email: "sarah.j@company.com",
-    phone: "+1 234 567 8900",
-    fitmentScore: 92,
-  },
-  {
-    id: "2",
-    name: "Mike Chen",
-    role: "Product Manager",
-    department: "Product",
-    email: "mike.c@company.com",
-    phone: "+1 234 567 8901",
-    fitmentScore: 88,
-  },
-  {
-    id: "3",
-    name: "Emma Wilson",
-    role: "UX Designer",
-    department: "Design",
-    email: "emma.w@company.com",
-    phone: "+1 234 567 8902",
-    fitmentScore: 95,
-  },
-  {
-    id: "4",
-    name: "James Brown",
-    role: "Data Analyst",
-    department: "Analytics",
-    email: "james.b@company.com",
-    phone: "+1 234 567 8903",
-    fitmentScore: 78,
-  },
-  {
-    id: "5",
-    name: "Lisa Anderson",
-    role: "HR Manager",
-    department: "Human Resources",
-    email: "lisa.a@company.com",
-    phone: "+1 234 567 8904",
-    fitmentScore: 85,
-  },
-  {
-    id: "6",
-    name: "David Kim",
-    role: "Backend Developer",
-    department: "Engineering",
-    email: "david.k@company.com",
-    phone: "+1 234 567 8905",
-    fitmentScore: 90,
-  },
-];
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card } from "@/components/ui/card";
+import { Search, ArrowUpDown } from "lucide-react";
 
 export default function Employees() {
-  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [towerFilter, setTowerFilter] = useState("all");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [fitmentFilter, setFitmentFilter] = useState("all");
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold">Employees</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage your workforce and view employee details
-          </p>
+      <div>
+        <h1 className="text-3xl font-semibold">Employees</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Manage and analyze employee fitment and performance
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search employees…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+            data-testid="input-search-employees"
+          />
         </div>
-        <div className="flex gap-2">
-          <div className="flex border rounded-lg">
-            <Button
-              variant={viewMode === "grid" ? "secondary" : "ghost"}
-              size="icon"
-              onClick={() => setViewMode("grid")}
-              data-testid="button-view-grid"
-            >
-              <Grid className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === "table" ? "secondary" : "ghost"}
-              size="icon"
-              onClick={() => setViewMode("table")}
-              data-testid="button-view-table"
-            >
-              <List className="h-4 w-4" />
-            </Button>
-          </div>
-          <Button data-testid="button-add-employee">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Employee
-          </Button>
+
+        <div className="flex gap-2 flex-wrap sm:flex-nowrap">
+          <Select value={towerFilter} onValueChange={setTowerFilter}>
+            <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-tower-filter">
+              <SelectValue placeholder="Select Tower" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Towers</SelectItem>
+              <SelectItem value="finance">Finance</SelectItem>
+              <SelectItem value="hr">HR</SelectItem>
+              <SelectItem value="it">IT</SelectItem>
+              <SelectItem value="operations">Operations</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-role-filter">
+              <SelectValue placeholder="Select Role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Roles</SelectItem>
+              <SelectItem value="analyst">Analyst</SelectItem>
+              <SelectItem value="manager">Manager</SelectItem>
+              <SelectItem value="specialist">Specialist</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={fitmentFilter} onValueChange={setFitmentFilter}>
+            <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-fitment-filter">
+              <SelectValue placeholder="Fitment Level" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Levels</SelectItem>
+              <SelectItem value="fit">Fit</SelectItem>
+              <SelectItem value="unfit">Unfit</SelectItem>
+              <SelectItem value="train-to-fit">Train to Fit</SelectItem>
+              <SelectItem value="overfit">Overfit</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
-      {viewMode === "grid" ? (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {mockEmployees.map((employee) => (
-            <EmployeeCard
-              key={employee.id}
-              {...employee}
-              onViewDetails={(id) => console.log("View details:", id)}
-            />
-          ))}
+      <Card>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="border-b bg-muted/50">
+              <tr>
+                <th className="text-left p-4 font-medium text-sm">
+                  <button className="flex items-center gap-1 hover-elevate rounded-md px-2 py-1 -mx-2 -my-1" data-testid="button-sort-employee">
+                    Employee
+                    <ArrowUpDown className="h-3 w-3" />
+                  </button>
+                </th>
+                <th className="text-left p-4 font-medium text-sm">
+                  <button className="flex items-center gap-1 hover-elevate rounded-md px-2 py-1 -mx-2 -my-1" data-testid="button-sort-role">
+                    Role
+                    <ArrowUpDown className="h-3 w-3" />
+                  </button>
+                </th>
+                <th className="text-left p-4 font-medium text-sm">
+                  <button className="flex items-center gap-1 hover-elevate rounded-md px-2 py-1 -mx-2 -my-1" data-testid="button-sort-tower">
+                    Tower
+                    <ArrowUpDown className="h-3 w-3" />
+                  </button>
+                </th>
+                <th className="text-left p-4 font-medium text-sm">
+                  <button className="flex items-center gap-1 hover-elevate rounded-md px-2 py-1 -mx-2 -my-1" data-testid="button-sort-fitment">
+                    Fitment
+                    <ArrowUpDown className="h-3 w-3" />
+                  </button>
+                </th>
+                <th className="text-left p-4 font-medium text-sm">
+                  <button className="flex items-center gap-1 hover-elevate rounded-md px-2 py-1 -mx-2 -my-1" data-testid="button-sort-productivity">
+                    Productivity
+                    <ArrowUpDown className="h-3 w-3" />
+                  </button>
+                </th>
+                <th className="text-left p-4 font-medium text-sm">
+                  <button className="flex items-center gap-1 hover-elevate rounded-md px-2 py-1 -mx-2 -my-1" data-testid="button-sort-utilization">
+                    Utilization
+                    <ArrowUpDown className="h-3 w-3" />
+                  </button>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colSpan={6} className="p-12 text-center text-muted-foreground">
+                  No employees found. Add employees or adjust your filters.
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-      ) : (
-        <EmployeeTable />
-      )}
+      </Card>
     </div>
   );
 }

@@ -170,11 +170,11 @@ export function AppSidebar() {
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
             <span className="text-xs font-semibold text-primary">
-              {user?.name?.substring(0, 2).toUpperCase() || "??"}
+              {user?.username?.substring(0, 2).toUpperCase() || "??"}
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{user?.name || "Unknown"}</p>
+            <p className="text-sm font-medium truncate">{user?.username || "Unknown"}</p>
             <Badge variant="secondary" className="text-xs capitalize">
               {user?.role || "User"}
             </Badge>

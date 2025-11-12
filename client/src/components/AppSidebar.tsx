@@ -69,16 +69,16 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarContent>
-        <div className="px-6 py-4">
-          <h1 className="text-xl font-bold text-foreground">AI Workforce Optimization Platform</h1>
+      <SidebarContent className="py-2">
+        <div className="px-4 py-2 mb-1">
+          <h1 className="text-lg font-bold text-foreground leading-tight">AI Workforce Optimization Platform</h1>
           <p className="text-xs text-muted-foreground">Enterprise HR Analytics</p>
         </div>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Main</SidebarGroupLabel>
+        <SidebarGroup className="py-0">
+          <SidebarGroupLabel className="px-4 py-1">Main</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-0.5">
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={location === item.url}>
@@ -93,10 +93,10 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Optimization</SidebarGroupLabel>
+        <SidebarGroup className="py-0">
+          <SidebarGroupLabel className="px-4 py-1">Optimization</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-0.5">
               {optimizationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={location === item.url}>
@@ -111,10 +111,10 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Data Management</SidebarGroupLabel>
+        <SidebarGroup className="py-0">
+          <SidebarGroupLabel className="px-4 py-1">Data Management</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-0.5">
               {dataItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={location === item.url}>
@@ -129,10 +129,10 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Insights</SidebarGroupLabel>
+        <SidebarGroup className="py-0">
+          <SidebarGroupLabel className="px-4 py-1">Insights</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-0.5">
               {insightsItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={location === item.url}>
@@ -147,10 +147,10 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>System</SidebarGroupLabel>
+        <SidebarGroup className="py-0">
+          <SidebarGroupLabel className="px-4 py-1">System</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-0.5">
               {systemItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={location === item.url}>
@@ -166,28 +166,15 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 space-y-2">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="text-xs font-semibold text-primary">
-              {user?.username?.substring(0, 2).toUpperCase() || "??"}
-            </span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{user?.username || "Unknown"}</p>
-            <Badge variant="secondary" className="text-xs capitalize">
-              {user?.role || "User"}
-            </Badge>
-          </div>
-        </div>
+      <SidebarFooter className="p-2">
         <Button 
           variant="outline" 
           size="sm" 
-          className="w-full" 
+          className="w-full justify-start gap-2" 
           onClick={handleLogout}
           data-testid="button-logout"
         >
-          <LogOut className="h-4 w-4 mr-2" />
+          <LogOut className="h-4 w-4" />
           Logout
         </Button>
       </SidebarFooter>

@@ -6,6 +6,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Bell } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
@@ -128,18 +132,38 @@ function AppContent() {
       <div className="flex h-screen w-full">
         <AppSidebar />
         <div className="flex flex-col flex-1 overflow-hidden">
-          <header className="flex items-center justify-between p-4 border-b bg-background">
-            <SidebarTrigger data-testid="button-sidebar-toggle" />
-            <div className="flex items-center gap-4">
+          <header className="flex items-center justify-between px-4 py-2 border-b bg-background">
+            <div className="flex items-center gap-3">
+              <SidebarTrigger data-testid="button-sidebar-toggle" />
+              <div className="font-semibold text-sm">AI Workforce Optimization</div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="relative"
+                data-testid="button-notifications"
+              >
+                <Bell className="h-5 w-5" />
+                <span className="absolute top-1 right-1 h-2 w-2 bg-destructive rounded-full"></span>
+              </Button>
+              <ThemeToggle />
               {user && (
-                <div className="text-sm text-muted-foreground">
-                  {user.username} ({user.role})
+                <div className="flex items-center gap-2 pl-2 border-l">
+                  <div className="text-right">
+                    <p className="text-sm font-medium leading-none">{user.username}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+                  </div>
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                      {user.username?.substring(0, 2).toUpperCase() || "??"}
+                    </AvatarFallback>
+                  </Avatar>
                 </div>
               )}
-              <ThemeToggle />
             </div>
           </header>
-          <main className="flex-1 overflow-auto p-8">
+          <main className="flex-1 overflow-auto p-6">
             <Router />
           </main>
         </div>

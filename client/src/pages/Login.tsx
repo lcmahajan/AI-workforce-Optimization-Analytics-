@@ -186,7 +186,7 @@ export default function Login() {
             <div className="text-center">
               <Button
                 type="button"
-                variant="link"
+                variant="ghost"
                 onClick={() => {
                   setIsRegistering(!isRegistering);
                   setError("");

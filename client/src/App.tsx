@@ -25,6 +25,7 @@ import Fatigue from "@/pages/Fatigue";
 import Settings from "@/pages/Settings";
 import Documentation from "@/pages/Documentation";
 import Login from "@/pages/Login";
+import Register from "@/pages/Register";
 
 function ProtectedRoute({ component: Component }: { component: () => JSX.Element }) {
   const { user, isLoading } = useAuth();
@@ -73,6 +74,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
       <Route path="/">
         {() => <ProtectedRoute component={Dashboard} />}
       </Route>
@@ -117,13 +119,13 @@ function Router() {
 function AppContent() {
   const { user } = useAuth();
   const [location] = useLocation();
-  const isLoginPage = location === "/login";
+  const isAuthPage = location === "/login" || location === "/register";
 
   const style = {
     "--sidebar-width": "16rem",
   };
 
-  if (isLoginPage) {
+  if (isAuthPage) {
     return <Router />;
   }
 

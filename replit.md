@@ -25,6 +25,29 @@ Preferred communication style: Simple, everyday language.
 **Framework**: Express.js with TypeScript (Node.js).
 **API Design**: RESTful API (JSON).
 **Authentication**: JWT-based with bcrypt hashing; role-based access control (employee/admin); token stored in localStorage (note: XSS vulnerability in current implementation, HTTP-only cookies for production).
+
+### Authentication UI
+
+**Modern Login Page** (`/login`):
+- Gradient background (blue-50 via indigo-50 to purple-50)
+- Centered card with shadow and modern design
+- Email/Username input with Mail icon
+- Password input with Lock icon and toggle visibility (Eye/EyeOff icons)
+- Forgot Password modal with email reset functionality
+- Gradient blue Login button with hover effects
+- Link to registration page
+- Full accessibility with aria-labels on icon buttons
+
+**Modern Registration Page** (`/register`):
+- Matching gradient background and design system
+- Username input with User icon
+- Email input with Mail icon
+- Password input with Lock icon
+- Department input with Building icon
+- Role selector dropdown (Employee/Admin)
+- Gradient Create Account button
+- Link back to login page
+- Complete form validation and error handling
 **Request Flow**: Logging, JSON body parsing, authentication middleware, error handling.
 **File Upload Handling**: Multer for multipart form data (CVs, JDs, activity CSVs).
 **Data Processing**: Papa Parse for CSV parsing.
@@ -56,6 +79,18 @@ Preferred communication style: Simple, everyday language.
 **Key Interfaces**: Standardized interfaces (`IERPConnector`, `ICollaborationConnector`) and a `ConnectorManager` for extensibility.
 
 ## Recent Updates
+
+**Modern Authentication UI** (November 2025):
+- Rebuilt login and registration pages with modern gradient design
+- Added password visibility toggle with Eye/EyeOff icons
+- Implemented Forgot Password modal with email reset flow
+- Enhanced accessibility with aria-labels on all interactive buttons
+- Integrated Mail, Lock, User, and Building icons from lucide-react
+- Gradient button styling (blue-600 to indigo-600) with shadow effects
+- Responsive design with mobile-first approach
+- Proper data-testid attributes on all interactive elements
+- Separate /login and /register routes with consistent design language
+- Toast notifications for user feedback on authentication actions
 
 **AI Assistant — Employee Insights Page** (November 2025):
 - Comprehensive AI-powered employee analysis tool at `/ai-assistant` route under Optimization section

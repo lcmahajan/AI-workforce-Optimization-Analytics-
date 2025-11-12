@@ -20,7 +20,8 @@ import {
   filterByRole,
   getFitmentClassification,
   calculateFTEOptimization,
-  calculateAutomationSavings
+  calculateAutomationSavings,
+  filterEmployeeDataByRole
 } from "@/data/mockEmployeeData";
 
 type Role = "Admin" | "Manager" | "Editor";
@@ -92,16 +93,22 @@ export default function AiEmployeeAssistant() {
 
   // Load employee and generate AI summary
   const loadEmployee = (employee: EmployeeData) => {
-    setSelectedEmployee(employee);
+    // DEMO: Filter employee data based on current role
+    // PRODUCTION: Replace with API call like:
+    //   const response = await fetch(`/api/employees/${employee.userid}?role=${currentRole}`);
+    //   const filteredEmployee = await response.json();
+    // Server should filter data based on authenticated user's role
+    const filteredEmployee = filterEmployeeDataByRole(employee, currentRole);
+    setSelectedEmployee(filteredEmployee);
     setShowSearchResults(false);
     setSearchQuery(employee.name);
     
     // Generate AI summary
-    const aiSummary = generateAIResponse(employee);
+    const aiSummary = generateAIResponse(filteredEmployee);
     setChatMessages([
       {
         role: "system",
-        content: `Analyzing employee ${employee.name} (${employee.userid})...`,
+        content: `Analyzing employee ${filteredEmployee.name} (${filteredEmployee.userid})...`,
         timestamp: new Date(),
       },
       {
@@ -162,11 +169,26 @@ export default function AiEmployeeAssistant() {
   ];
 
   // RBAC: Check field visibility
+  // Note: In production, use server-side filtering instead of client-side checks
   const canViewField = (field: "salary" | "email" | "sensitive"): boolean => {
     if (currentRole === "Admin") return true;
     if (currentRole === "Manager" && field === "email") return true;
     return false;
   };
+  
+  // Re-filter employee data when role changes (RBAC demo)
+  // PRODUCTION: When role changes, re-fetch from server with new role parameter
+  useEffect(() => {
+    if (selectedEmployee) {
+      // DEMO: Find original employee data from mock array
+      const originalEmployee = mockEmployees.find(emp => emp.userid === selectedEmployee.userid);
+      if (originalEmployee) {
+        // PRODUCTION: Replace with API call
+        const filteredEmployee = filterEmployeeDataByRole(originalEmployee, currentRole);
+        setSelectedEmployee(filteredEmployee);
+      }
+    }
+  }, [currentRole]);
 
   // Get fitment badge color
   const getFitmentColor = (score: number) => {
@@ -327,10 +349,10 @@ export default function AiEmployeeAssistant() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                       <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4 text-muted-foreground" />
-                        {canViewField("email") ? (
+                        {selectedEmployee.email ? (
                           <span className="text-muted-foreground" data-testid="text-email">{selectedEmployee.email}</span>
                         ) : (
-                          <span className="text-muted-foreground blur-sm select-none" data-testid="text-email-restricted">email@hidden.com</span>
+                          <Badge variant="secondary" data-testid="badge-email-restricted">Restricted</Badge>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
@@ -343,7 +365,7 @@ export default function AiEmployeeAssistant() {
                       </div>
                       <div className="flex items-center gap-2">
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
-                        {canViewField("salary") ? (
+                        {selectedEmployee.salary > 0 ? (
                           <span className="text-muted-foreground font-medium" data-testid="text-salary">${selectedEmployee.salary.toLocaleString()}</span>
                         ) : (
                           <Badge variant="secondary" data-testid="badge-salary-restricted">Restricted</Badge>

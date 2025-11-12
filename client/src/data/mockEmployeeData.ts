@@ -325,3 +325,43 @@ export function calculateAutomationSavings(employee: EmployeeData): { processNam
     }))
     .sort((a, b) => b.fteSavings - a.fteSavings);
 }
+
+// ============================================================================
+// RBAC DATA FILTERING (DEMO PATTERN)
+// ============================================================================
+// IMPORTANT: This client-side filtering is for DEMO purposes only to show the
+// correct pattern. In production, implement RBAC filtering SERVER-SIDE:
+//
+// PRODUCTION IMPLEMENTATION:
+// 1. Create API endpoint: GET /api/employees/:id?role=<user_role>
+// 2. Server-side filtering in database query or API response builder:
+//    - Admin query: SELECT * FROM employees WHERE id = ?
+//    - Manager query: SELECT id, name, email, ... (exclude salary) WHERE id = ?
+//    - Editor query: SELECT id, name, ... (exclude salary, email) WHERE id = ?
+// 3. Server validates user's role via JWT/session before filtering
+// 4. Client receives ONLY authorized data (no PII in bundle/response)
+//
+// SECURITY NOTE: With client-side mock data, all data is in the bundle and
+// accessible via DevTools. This demo shows the UI/UX pattern but does NOT
+// provide actual security. Use server-side RBAC for production.
+// ============================================================================
+
+export function filterEmployeeDataByRole(employee: EmployeeData, role: "Admin" | "Manager" | "Editor"): EmployeeData {
+  const filtered = { ...employee };
+  
+  // Admin sees everything
+  if (role === "Admin") {
+    return filtered;
+  }
+  
+  // Manager sees email but not salary
+  if (role === "Manager") {
+    filtered.salary = 0; // Redacted - In production, server wouldn't send this field
+    return filtered;
+  }
+  
+  // Editor sees limited data - no salary, no email
+  filtered.salary = 0; // Redacted - In production, server wouldn't send this field
+  filtered.email = ""; // Redacted - In production, server wouldn't send this field
+  return filtered;
+}

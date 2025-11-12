@@ -57,6 +57,60 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
+**AI Assistant — Employee Insights Page** (November 2025):
+- Comprehensive AI-powered employee analysis tool at `/ai-assistant` route under Optimization section
+- **Full Employee Profile Display**: Avatar, name, userid, position, department, email, salary, experience, joining date, current/recommended roles
+- **Key Metrics Dashboard**: 
+  - Fitment Score with auto-classification (Fit/Unfit/Train to Fit/Overfit)
+  - Productivity and Utilization percentages
+  - Automation Potential with High/Medium/Low badges
+  - Skill Score, Aptitude Score, FTE optimization, Consolidated/Non-Consolidated counts
+  - Fatigue indicator for high-stress detection
+- **5-Tab Interface**:
+  - **Overview**: Productivity trend line chart (6 months), Work distribution pie chart
+  - **Activities**: Process list with hours, output, repetitive scores, automation candidate badges
+  - **Skills**: Skill scores bar chart, Hard/Soft skills badges, Identified skill gaps
+  - **Performance**: Performance timeline bars, Average productivity, Trend indicators
+  - **Documents**: Employee documents list with type, upload date, download buttons
+- **Mock AI Assistant** (deterministic JavaScript with LLM integration hooks):
+  - Auto-generates comprehensive employee analysis on load
+  - Profile summary, fitment verdict, performance highlights
+  - Automation potential assessment and process recommendations
+  - Training recommendations and HR action suggestions
+  - 4 quick query buttons for instant insights
+  - Interactive chat with custom queries
+  - Placeholder callAI() function for OpenAI/LLM integration
+  - Prompt templates ready for production LLM deployment
+- **Role-Based Access Control (RBAC)**:
+  - Admin: Full access (salary, email, all recommendations, export button)
+  - Manager: Performance, fitment, processes, email (no salary)
+  - Editor: Limited view (no salary, email blurred/restricted)
+  - Visual badges and blurred fields for restricted data
+  - Audit log placeholder for export operations
+- **Smart Search & Filters**:
+  - Real-time search by name, userid, or email with dropdown results (max 5)
+  - Department filter (Finance, IT, HR, Operations)
+  - Role filter (Analyst, Manager, Specialist, Lead)
+  - Case-insensitive matching
+- **Auto-Calculations**:
+  - Fitment classification: Overfit ≥9, Fit ≥8, Train to Fit ≥5, Unfit <5
+  - FTE optimization: totalHours / 160 (standard monthly hours)
+  - Automation savings: Processes with repetitive score ≥70, sorted by FTE savings potential
+- **Visualization (Recharts)**:
+  - Productivity trend line chart (6-month history)
+  - Skill scores comparison bar chart (Hard/Soft/Overall)
+  - Work distribution pie chart (Consolidated vs Non-Consolidated)
+- **Recommended Actions**: Flag for automation, Add training plan, Schedule 1:1, Export report
+- **Mock Data**: 5 comprehensive employee profiles (Ramesh Kumar, Priya Sharma, David Chen, Aisha Patel, Michael Johnson) with varied fitment levels, departments, and metrics
+- **Production-Ready Architecture**:
+  - Modular component structure
+  - Clear separation: UI components, mock AI logic, LLM integration hooks
+  - Documented callAI() function for OpenAI API integration
+  - Vector DB placeholder for historical document search
+  - RBAC enforced on backend recommendation
+  - Audit trail system for sensitive operations
+- **Security & Privacy**: Salary/PII blurring, restricted field badges, role-based visibility, audit log placeholders
+
 **Automated Employees Dashboard** (November 2025):
 - Enhanced `/employees` page with comprehensive automation logic for HR analytics
 - **Auto-Classification**: Automatically categorizes employee fitment levels based on score thresholds (Fit ≥8, Train to Fit 5-7, Overfit 3-5, Unfit <3)

@@ -6,7 +6,7 @@ const docs = [
   {
     id: "1",
     title: "Getting Started Guide",
-    description: "Learn the basics of the WorkForce AI platform",
+    description: "Learn the basics of the AI Workforce Optimization Platform",
     category: "Getting Started",
     icon: BookOpen,
   },
@@ -67,7 +67,7 @@ export default function Documentation() {
       <div>
         <h1 className="text-3xl font-semibold">Documentation</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Learn how to use the WorkForce AI platform
+          Learn how to use the AI Workforce Optimization Platform
         </p>
       </div>
 

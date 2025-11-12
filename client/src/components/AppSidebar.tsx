@@ -71,8 +71,8 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <div className="px-6 py-4">
-          <h1 className="text-xl font-bold text-foreground">AI Workforce Platform</h1>
-          <p className="text-xs text-muted-foreground">Optimization Platform</p>
+          <h1 className="text-xl font-bold text-foreground">AI Workforce Optimization Platform</h1>
+          <p className="text-xs text-muted-foreground">Enterprise HR Analytics</p>
         </div>
 
         <SidebarGroup>

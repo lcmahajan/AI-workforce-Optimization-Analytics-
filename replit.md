@@ -1,8 +1,8 @@
-# WorkForce AI Platform
+# AI Workforce Optimization Platform
 
 ## Overview
 
-The WorkForce AI Platform is an enterprise application designed to optimize employee allocation, track performance, and provide AI-powered insights for workforce management. It supports HR operations such as employee fitment analysis, productivity tracking, job description matching, CV processing, and fatigue detection. The platform is a full-stack web application leveraging a React frontend, Express backend, and PostgreSQL database, aiming to facilitate data-driven decisions in workforce optimization.
+The AI Workforce Optimization Platform is an enterprise application designed to optimize employee allocation, track performance, and provide AI-powered insights for workforce management. It supports HR operations such as employee fitment analysis, productivity tracking, job description matching, CV processing, and fatigue detection. The platform is a full-stack web application leveraging a React frontend, Express backend, and PostgreSQL database, aiming to facilitate data-driven decisions in workforce optimization.
 
 ## User Preferences
 

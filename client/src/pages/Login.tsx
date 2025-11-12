@@ -66,8 +66,8 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mb-4">
-            <h1 className="text-2xl font-bold text-primary">AI Workforce Platform</h1>
-            <p className="text-sm text-muted-foreground">Optimization Platform</p>
+            <h1 className="text-2xl font-bold text-primary">AI Workforce Optimization Platform</h1>
+            <p className="text-sm text-muted-foreground">Enterprise HR Analytics</p>
           </div>
           <CardTitle className="text-2xl">
             {isRegistering ? "Create Account" : "Sign In"}

@@ -57,6 +57,29 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates
 
+**Automated Employees Dashboard** (November 2025):
+- Enhanced `/employees` page with comprehensive automation logic for HR analytics
+- **Auto-Classification**: Automatically categorizes employee fitment levels based on score thresholds (Fit ≥8, Train to Fit 5-7, Overfit 3-5, Unfit <3)
+- **Auto-Generated Summary Statistics**: 4 KPI cards that automatically calculate from employee data:
+  - Total Employees (auto-counted)
+  - Average Fitment Score (auto-calculated)
+  - High Performers (auto-detected: productivity >90%)
+  - Low Utilization (auto-flagged: utilization <50%)
+- **Auto-Insights Engine**: Generates real-time insights when data changes:
+  - High performer detection and recognition
+  - Low utilization warnings with employee names
+  - Unfit employee alerts with recommendations
+  - Training needs identification
+  - All insights logged to browser console for debugging
+- **Auto-Highlighting**: Visual indicators for performance levels:
+  - Green row background + star badge for high performers (productivity >90%)
+  - Green text for high productivity values
+  - Red text for low utilization values (<50%)
+- **Smart Filtering**: Search by name, filter by Tower/Role/Fitment with case-insensitive matching
+- **State-Driven Architecture**: TypeScript interfaces (Employee, AutoInsight), React hooks (useState, useMemo, useEffect)
+- **Sample Data Mode**: LOAD_SAMPLE_DATA flag for testing automation features with 8 diverse employee profiles
+- **Ready for Integration**: setEmployees() function ready for CSV/JSON uploads or API integration
+
 **Employee Fitment Analysis Page** (November 2025):
 - Added comprehensive fitment analysis page at `/fitment` route
 - Features 4 KPI summary cards: Total Employees, Average Fitment Score, High Performers, Departments

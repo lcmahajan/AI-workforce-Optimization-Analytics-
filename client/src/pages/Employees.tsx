@@ -1,22 +1,36 @@
 import { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, ArrowUpDown } from "lucide-react";
+import { Search, ArrowUpDown, Users, TrendingUp, Award, AlertCircle } from "lucide-react";
 
 interface Employee {
   id: number;
   name: string;
   role: string;
   tower: string;
+  fitmentScore?: number; // Raw score from data upload
   fitment: "Fit" | "Unfit" | "Train to Fit" | "Overfit";
   productivity: number;
   utilization: number;
 }
 
+interface AutoInsight {
+  type: "warning" | "success" | "info";
+  message: string;
+}
+
 // Set to true to load sample data for demonstration purposes
 const LOAD_SAMPLE_DATA = false;
+
+// Automation: Auto-classify fitment level based on score
+const autoClassifyFitment = (score: number): Employee["fitment"] => {
+  if (score >= 8) return "Fit";
+  if (score >= 5) return "Train to Fit";
+  if (score >= 3) return "Overfit";
+  return "Unfit";
+};
 
 export default function Employees() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -25,6 +39,7 @@ export default function Employees() {
   const [fitmentFilter, setFitmentFilter] = useState("all");
   
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [autoInsights, setAutoInsights] = useState<AutoInsight[]>([]);
 
   // Load sample data if LOAD_SAMPLE_DATA flag is enabled
   // In production, this will be replaced with API calls or CSV upload handlers
@@ -36,7 +51,8 @@ export default function Employees() {
           name: "Sarah Johnson",
           role: "Manager",
           tower: "IT",
-          fitment: "Fit",
+          fitmentScore: 8.5,
+          fitment: autoClassifyFitment(8.5),
           productivity: 92,
           utilization: 88,
         },
@@ -45,7 +61,8 @@ export default function Employees() {
           name: "Mike Chen",
           role: "Analyst",
           tower: "Finance",
-          fitment: "Fit",
+          fitmentScore: 8.2,
+          fitment: autoClassifyFitment(8.2),
           productivity: 85,
           utilization: 90,
         },
@@ -54,7 +71,8 @@ export default function Employees() {
           name: "Emma Wilson",
           role: "Specialist",
           tower: "HR",
-          fitment: "Train to Fit",
+          fitmentScore: 6.5,
+          fitment: autoClassifyFitment(6.5),
           productivity: 78,
           utilization: 75,
         },
@@ -63,7 +81,8 @@ export default function Employees() {
           name: "David Park",
           role: "Analyst",
           tower: "IT",
-          fitment: "Train to Fit",
+          fitmentScore: 5.8,
+          fitment: autoClassifyFitment(5.8),
           productivity: 72,
           utilization: 80,
         },
@@ -72,7 +91,8 @@ export default function Employees() {
           name: "Lisa Anderson",
           role: "Manager",
           tower: "Operations",
-          fitment: "Fit",
+          fitmentScore: 9.2,
+          fitment: autoClassifyFitment(9.2),
           productivity: 95,
           utilization: 92,
         },
@@ -81,7 +101,8 @@ export default function Employees() {
           name: "James Brown",
           role: "Specialist",
           tower: "Finance",
-          fitment: "Overfit",
+          fitmentScore: 3.5,
+          fitment: autoClassifyFitment(3.5),
           productivity: 88,
           utilization: 85,
         },
@@ -90,7 +111,8 @@ export default function Employees() {
           name: "Maria Garcia",
           role: "Analyst",
           tower: "HR",
-          fitment: "Fit",
+          fitmentScore: 8.0,
+          fitment: autoClassifyFitment(8.0),
           productivity: 83,
           utilization: 87,
         },
@@ -99,15 +121,71 @@ export default function Employees() {
           name: "Robert Taylor",
           role: "Manager",
           tower: "IT",
-          fitment: "Unfit",
+          fitmentScore: 4.2,
+          fitment: autoClassifyFitment(4.2),
           productivity: 65,
-          utilization: 70,
+          utilization: 48,
         },
       ];
       
       setEmployees(sampleEmployees);
     }
   }, []);
+
+  // Automation: Generate insights when employee data changes
+  useEffect(() => {
+    if (employees.length === 0) {
+      setAutoInsights([]);
+      return;
+    }
+
+    const insights: AutoInsight[] = [];
+
+    // Auto-insight: High performers
+    const highPerformers = employees.filter(emp => emp.productivity > 90);
+    if (highPerformers.length > 0) {
+      insights.push({
+        type: "success",
+        message: `${highPerformers.length} high performer${highPerformers.length > 1 ? 's' : ''} detected (Productivity > 90%): ${highPerformers.map(e => e.name).join(", ")}`,
+      });
+    }
+
+    // Auto-insight: Low utilization warning
+    const lowUtilization = employees.filter(emp => emp.utilization < 50);
+    if (lowUtilization.length > 0) {
+      insights.push({
+        type: "warning",
+        message: `${lowUtilization.length} employee${lowUtilization.length > 1 ? 's' : ''} below 50% utilization: ${lowUtilization.map(e => e.name).join(", ")}`,
+      });
+    }
+
+    // Auto-insight: Unfit employees
+    const unfitEmployees = employees.filter(emp => emp.fitment === "Unfit");
+    if (unfitEmployees.length > 0) {
+      insights.push({
+        type: "warning",
+        message: `${unfitEmployees.length} employee${unfitEmployees.length > 1 ? 's' : ''} classified as Unfit - consider training or role adjustment`,
+      });
+    }
+
+    // Auto-insight: Training needed
+    const trainingNeeded = employees.filter(emp => emp.fitment === "Train to Fit");
+    if (trainingNeeded.length > 0) {
+      insights.push({
+        type: "info",
+        message: `${trainingNeeded.length} employee${trainingNeeded.length > 1 ? 's' : ''} would benefit from additional training`,
+      });
+    }
+
+    setAutoInsights(insights);
+
+    // Log insights to console
+    console.log("=== AUTO INSIGHTS GENERATED ===");
+    insights.forEach(insight => {
+      console.log(`[${insight.type.toUpperCase()}] ${insight.message}`);
+    });
+    console.log("===============================");
+  }, [employees]);
 
   const filteredEmployees = useMemo(() => {
     return employees.filter((emp) => {
@@ -128,6 +206,29 @@ export default function Employees() {
     });
   }, [employees, searchQuery, towerFilter, roleFilter, fitmentFilter]);
 
+  // Automation: Calculate summary statistics
+  const summaryStats = useMemo(() => {
+    if (employees.length === 0) {
+      return {
+        totalEmployees: 0,
+        avgFitmentScore: 0,
+        highPerformers: 0,
+        lowUtilization: 0,
+      };
+    }
+
+    const avgFitment = employees.reduce((sum, emp) => sum + (emp.fitmentScore || 0), 0) / employees.length;
+    const highPerf = employees.filter(emp => emp.productivity > 90).length;
+    const lowUtil = employees.filter(emp => emp.utilization < 50).length;
+
+    return {
+      totalEmployees: employees.length,
+      avgFitmentScore: avgFitment,
+      highPerformers: highPerf,
+      lowUtilization: lowUtil,
+    };
+  }, [employees]);
+
   const getFitmentVariant = (fitment: Employee["fitment"]) => {
     switch (fitment) {
       case "Fit":
@@ -143,14 +244,109 @@ export default function Employees() {
     }
   };
 
+  // Automation: Check if employee is a high performer
+  const isHighPerformer = (employee: Employee) => employee.productivity > 90;
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-semibold">Employees</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Manage and analyze employee fitment and performance
+          Manage, analyze, and automate employee fitment and performance.
         </p>
       </div>
+
+      {/* Auto-Generated Summary Statistics */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="hover-elevate transition-all" data-testid="card-total-employees">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Employees
+            </CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold" data-testid="text-total-employees">
+              {summaryStats.totalEmployees}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Active workforce</p>
+          </CardContent>
+        </Card>
+
+        <Card className="hover-elevate transition-all" data-testid="card-avg-fitment">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Avg Fitment Score
+            </CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold" data-testid="text-avg-fitment">
+              {summaryStats.avgFitmentScore.toFixed(1)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Auto-calculated average</p>
+          </CardContent>
+        </Card>
+
+        <Card className="hover-elevate transition-all" data-testid="card-high-performers">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              High Performers
+            </CardTitle>
+            <Award className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold" data-testid="text-high-performers">
+              {summaryStats.highPerformers}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Productivity &gt; 90%</p>
+          </CardContent>
+        </Card>
+
+        <Card className="hover-elevate transition-all" data-testid="card-low-utilization">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Low Utilization
+            </CardTitle>
+            <AlertCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold" data-testid="text-low-utilization">
+              {summaryStats.lowUtilization}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Below 50% utilization</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Auto Insights Section */}
+      {autoInsights.length > 0 && (
+        <div className="space-y-2" data-testid="section-auto-insights">
+          <h3 className="text-sm font-medium">Auto-Generated Insights</h3>
+          <div className="space-y-2">
+            {autoInsights.map((insight, index) => (
+              <Card 
+                key={index} 
+                className={`border-l-4 ${
+                  insight.type === 'success' ? 'border-l-green-500' :
+                  insight.type === 'warning' ? 'border-l-yellow-500' :
+                  'border-l-blue-500'
+                }`}
+                data-testid={`insight-${index}`}
+              >
+                <CardContent className="py-3">
+                  <p className="text-sm">
+                    <span className="font-semibold">
+                      {insight.type === 'success' ? '✓' : insight.type === 'warning' ? '⚠' : 'ℹ'}
+                    </span>
+                    {' '}{insight.message}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="relative flex-1">
@@ -264,12 +460,21 @@ export default function Employees() {
                 filteredEmployees.map((employee) => (
                   <tr 
                     key={employee.id} 
-                    className="border-b hover:bg-muted/50 transition-colors"
+                    className={`border-b hover:bg-muted/50 transition-colors ${
+                      isHighPerformer(employee) ? 'bg-green-50 dark:bg-green-950/20' : ''
+                    }`}
                     data-testid={`row-employee-${employee.id}`}
                   >
                     <td className="p-4">
-                      <div className="font-medium" data-testid={`text-name-${employee.id}`}>
-                        {employee.name}
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium" data-testid={`text-name-${employee.id}`}>
+                          {employee.name}
+                        </div>
+                        {isHighPerformer(employee) && (
+                          <Badge variant="default" className="text-xs" data-testid={`badge-high-performer-${employee.id}`}>
+                            ⭐ High Performer
+                          </Badge>
+                        )}
                       </div>
                     </td>
                     <td className="p-4">
@@ -291,12 +496,22 @@ export default function Employees() {
                       </Badge>
                     </td>
                     <td className="p-4">
-                      <div className="text-sm font-mono font-semibold" data-testid={`text-productivity-${employee.id}`}>
+                      <div 
+                        className={`text-sm font-mono font-semibold ${
+                          employee.productivity > 90 ? 'text-green-600 dark:text-green-400' : ''
+                        }`}
+                        data-testid={`text-productivity-${employee.id}`}
+                      >
                         {employee.productivity}%
                       </div>
                     </td>
                     <td className="p-4">
-                      <div className="text-sm font-mono font-semibold" data-testid={`text-utilization-${employee.id}`}>
+                      <div 
+                        className={`text-sm font-mono font-semibold ${
+                          employee.utilization < 50 ? 'text-red-600 dark:text-red-400' : ''
+                        }`}
+                        data-testid={`text-utilization-${employee.id}`}
+                      >
                         {employee.utilization}%
                       </div>
                     </td>

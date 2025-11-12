@@ -1,0 +1,183 @@
+Build a new page for the existing HR dashboard called AI Assistant — Employee Insights using React + Tailwind CSS. Place it under the Optimization section.
+
+The page must provide a fast, secure, role-aware (Admin / Manager / Editor) AI assistant and search that returns a full employee profile and actionable recommendations. Use modular components and prepare placeholders for real AI integration (OpenAI or other LLM) and a vector DB. The page should work with dummy/static data initially, but should be clearly structured for data upload / API integration later.
+
+Top-level UI / Layout
+
+Left: small vertical breadcrumb / nav (Optimization → AI Assistant)
+
+Center: Search bar at top (placeholder: “Search employee by name or userID…”) with quick filters (Department, Role).
+
+Right: Role selector (Admin / Manager / Editor) for demo (simulate access control).
+
+Main area: split into two columns on wide screens:
+
+Left column (60%): Employee detail panel + timeline + process/activity list + charts.
+
+Right column (40%): AI Assistant chat box + quick facts card + recommended actions & suggested trainings.
+
+Search behavior (UI)
+
+User types name or userid → immediate dropdown results (mock data).
+
+On select, load full employee profile into the detail panel and send a structured prompt to the AI assistant (mock LLM) to produce: summary, status, recommendations, and flags.
+
+Provide a “Refresh Insights” button to re-run analysis on current data.
+
+Employee Detail Panel (show all fields)
+
+Header with avatar, Name, UserID, Position, Department, Current Role, Recommended Role, Joining Date, Email, Salary, Experience (years).
+
+Key metric chips: Fitment Score (value + classification: Fit/Unfit/Train to Fit/Overfit), Productivity Rate (%), Utilization (%), FTE (FTE optimization suggestion), Consolidated / Non-Consolidated (counts), Skill Score, Aptitude Score, Consolidation Rate, Automation Potential (Low/Medium/High).
+
+Tabs: Overview | Activities (processes worked on) | Skills & Gaps | Performance Timeline | Documents.
+
+Activities tab: list processes the employee works on (process name, time spent, output), with ability to mark process as candidate for automation.
+
+Charts & Visuals
+
+Small line chart for Productivity over time (dummy data).
+
+Bar chart for skill scores (hard vs soft skills).
+
+Pie or donut for consolidated vs non-consolidated work. (Use simple SVG or Chart library placeholder.)
+
+AI Assistant panel
+
+Chatbox UI with system / assistant / user messages.
+
+On employee load, assistant auto-generates a structured summary card with:
+
+One-sentence profile summary (role, tenure, top skills).
+
+Fitment verdict and reasoning.
+
+Productivity & utilization highlights.
+
+Automation potential and recommended processes to automate.
+
+Recommended learning/training (softskills/hardskills).
+
+Suggested HR actions (promote, train, reassign, performance plan).
+
+Provide query examples buttons below the chat (Quick queries):
+
+“Why is this employee Train to Fit?”
+
+“List 3 recommended trainings.”
+
+“Show last 6 months productivity.”
+
+“Which processes to automate for this employee?”
+
+Include an “Export Report (PDF)” placeholder button.
+
+RBAC & Data visibility
+
+Simulate role-based views:
+
+Admin: sees everything (salary, email, recommendations).
+
+Manager: sees performance, fitment, process, recommendations, contact (no salary if flagged).
+
+Editor: sees role/skill/fitment but limited confidential fields.
+
+Add a visible badge showing current demo role and hide/blur restricted fields when role lacks access.
+
+Data & Automation logic (client-side mock)
+
+Include a small mock dataset (JSON) with multiple employees containing all fields: userid, name, email, salary, joiningDate, department, position, currentRole, recommendedRole, fitmentScore, productivity, utilization, processes [{name, hours, output}], skills {soft:[], hard:[]}, skillScore, aptitudeScore, consolidated boolean, automationPotential score, experienceYears, documents.
+
+On load, parse data into state; on search select populate UI.
+
+Implement auto-calculations:
+
+Fitment classification: Fit ≥8, Train 5–7, Unfit <5, Overfit >9 (example).
+
+Average productivity, top/bottom processes, FTE optimization estimate = (current hours / expected hours).
+
+Automation potential: derived from process repetitive score and time spent (mock logic).
+
+Implement simple highlight rules (top performers green, at-risk red).
+
+AI Assistant Implementation (mock + integration hooks)
+
+Build the assistant to work in two modes:
+
+Mock mode (default): use deterministic JS functions to compose assistant replies from the loaded employee object (good for offline demo).
+
+LLM mode (placeholder): include a helper function callAI(prompt, metadata) that posts to /api/ai (placeholder) — documented so developer can swap with OpenAI / other LLM easily.
+
+Include prompt templates for real LLM usage, e.g.:
+
+SYSTEM: You are an HR analytics assistant. Use the employee data JSON and answer concisely. Provide:
+- short_profile, fitment_verdict, reasons, productivity_summary, automation_candidates, training_recommendations, HR_action_suggestions.
+USER: Analyze this employee: {employeeJSON}
+
+
+Provide function that converts assistant output into UI cards and suggested actions.
+
+Security & Privacy notes (UI display)
+
+When role !== Admin, blur/hide salary & sensitive fields and show “Restricted”.
+
+Add an audit log placeholder when Manager downloads/export report.
+
+Extras
+
+Add keywords tagging (e.g., “high-risk”, “automation-candidate”).
+
+Allow manager to add a note/comment stored in local state.
+
+Add a small “Fatigue” indicator computed from recent activity hours (mock).
+
+Styling
+
+Use Tailwind. Keep consistent with the rest of the dashboard (cards, shadows, rounded corners).
+
+Use color-coded chips for Fitment (green/orange/red/blue) but include accessible labels so blur users can read text.
+
+Deliverables
+
+Single-file React page AiEmployeeAssistant.jsx plus a small mockData.js with sample employees.
+
+Clear comments where to integrate real AI keys, vector DB and backend.
+
+Demo-ready: works client-only with mock data and simulated AI replies.
+
+End Goal: A production-prototype AI assistant page that helps Admin/Manager/Editor instantly get full employee context and recommended HR actions via an AI-generated summary and interactive chat.
+
+⚙️ Quick Implementation Notes (so the generated code is useful)
+
+Mock AI: The assistant should first be implemented with JS templates (deterministic) so you can demo instantly without API keys. Example: it reads fitmentScore and productivity and returns natural-language summary + structured JSON fields.
+
+Production AI: Hook callAI() to OpenAI (or other LLM) and pass the structured prompt + employeeJSON. For long-term, use embeddings + vector DB for historical documents and more context-aware answers.
+
+Vector DB idea: store employee documents, process logs, reviews as vectors; when manager asks complex questions (e.g., “what did he do in Q2?”), query vectors for supporting docs and pass to LLM.
+
+Security: Use RBAC on backend; never send salary or PII to LLM unless redaction and consent is handled.
+
+Export/Share: generate a PDF summary server-side for audit trail.
+
+💡 Sample AI Assistant Response Template (for your mock mode)
+
+When a manager searches userid: EMP123 assistant returns:
+
+Profile Summary:
+"Ramesh Kumar (EMP123), Senior Analyst in Finance, joined 2019 (6.2 yrs). Top skills: Reconciliation, Excel, SQL. Fitment Score: 6.8 — Train to Fit (gap in automation scripting)."
+
+Performance:
+"Productivity: 72% average last 6 months; Utilization: 85%. Major processes: Vendor Reconciliation (45% time), Monthly Close (20%)."
+
+FTE Optimization / Automation Potential:
+"Automation Potential: High for Vendor Reconciliation — repetitive steps + high time share. Estimate: save 0.6 FTE if automated."
+
+Recommendations:
+"- Short-term: Enroll in ‘Advanced Excel & RPA Basics’ (2 weeks).
+
+Medium-term: Pair with automation specialist to document process for RPA.
+
+HR Action: Consider ‘Train to Fit’ targeted program; monitor 3 months post-training."
+
+Suggested Manager Actions:
+"[Add Training Plan] [Flag for Automation Review] [Schedule 1:1]"

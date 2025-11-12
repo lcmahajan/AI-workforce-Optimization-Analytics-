@@ -11,6 +11,7 @@ import {
   AlertCircle,
   LogOut,
   Target,
+  Bot,
 } from "lucide-react";
 import {
   Sidebar,
@@ -33,6 +34,10 @@ const menuItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
   { title: "Employees", url: "/employees", icon: Users },
+];
+
+const optimizationItems = [
+  { title: "AI Assistant", url: "/ai-assistant", icon: Bot },
   { title: "Optimization", url: "/optimization", icon: Zap },
 ];
 
@@ -75,6 +80,24 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={location === item.url}>
+                    <Link href={item.url} data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Optimization</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {optimizationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={location === item.url}>
                     <Link href={item.url} data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>

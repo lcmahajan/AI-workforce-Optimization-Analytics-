@@ -12,6 +12,7 @@ import Dashboard from "@/pages/Dashboard";
 import Analytics from "@/pages/Analytics";
 import Employees from "@/pages/Employees";
 import FitmentAnalysis from "@/pages/FitmentAnalysis";
+import AiEmployeeAssistant from "@/pages/AiEmployeeAssistant";
 import UploadData from "@/pages/UploadData";
 import Optimization from "@/pages/Optimization";
 import Reports from "@/pages/Reports";
@@ -79,6 +80,9 @@ function Router() {
       </Route>
       <Route path="/fitment">
         {() => <ProtectedRoute component={FitmentAnalysis} />}
+      </Route>
+      <Route path="/ai-assistant">
+        {() => <ProtectedRoute component={AiEmployeeAssistant} />}
       </Route>
       <Route path="/upload">
         {() => <AdminRoute component={UploadData} />}

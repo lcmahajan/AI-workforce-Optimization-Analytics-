@@ -18,7 +18,7 @@ Preferred communication style: Simple, everyday language.
 **Styling**: Tailwind CSS (light/dark modes), CSS variables, Inter and JetBrains Mono fonts, responsive design (mobile-first).
 **State Management**: TanStack Query for server state, React Context for auth, React hooks for local state.
 **Routing**: Wouter for client-side routing with protected routes.
-**Key Pages**: Dashboard, Analytics, Employees, Upload Data, Optimization, Reports, Softskills, Fatigue Analysis, Settings, Documentation.
+**Key Pages**: Dashboard, Analytics, Employees, Fitment Analysis, Upload Data, Optimization, Reports, Softskills, Fatigue Analysis, Settings, Documentation.
 
 ### Backend Architecture
 
@@ -54,6 +54,19 @@ Preferred communication style: Simple, everyday language.
 **ERP/HRMS Connectors**: Stubbed interfaces for SAP, Workday, Oracle HCM.
 **Collaboration Tool Connectors**: Stubbed interfaces for Slack, Microsoft Teams.
 **Key Interfaces**: Standardized interfaces (`IERPConnector`, `ICollaborationConnector`) and a `ConnectorManager` for extensibility.
+
+## Recent Updates
+
+**Employee Fitment Analysis Page** (November 2025):
+- Added comprehensive fitment analysis page at `/fitment` route
+- Features 4 KPI summary cards: Total Employees, Average Fitment Score, High Performers, Departments
+- Includes searchable and filterable data table with 6 columns: Employee Name, Department, Current Role, Recommended Role, Fitment Score, Status
+- State-driven architecture with TypeScript interfaces (FitmentMetrics, EmployeeFitment)
+- Case-insensitive filtering for department selection
+- Sample data loading mechanism (LOAD_SAMPLE_DATA flag) for demonstration
+- Integrated into sidebar navigation under "Insights" section
+- Production-ready with proper React hooks (useState, useMemo, useEffect)
+- Ready for API/CSV integration via setMetrics() and setEmployees() functions
 
 ## External Dependencies
 

@@ -1,13 +1,139 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Search, ArrowUpDown, Users, TrendingUp, Award, Building2, Settings2 } from "lucide-react";
+
+interface FitmentMetrics {
+  totalEmployees: number;
+  avgFitmentScore: number;
+  highPerformers: number;
+  departments: number;
+}
+
+interface EmployeeFitment {
+  id: number;
+  employeeName: string;
+  department: string;
+  currentRole: string;
+  recommendedRole: string;
+  fitmentScore: number;
+  status: "Fit" | "Unfit" | "Train to Fit" | "Overfit";
+}
+
+// Set to true to load sample data for demonstration purposes
+const LOAD_SAMPLE_DATA = false;
 
 export default function FitmentAnalysis() {
   const [searchQuery, setSearchQuery] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
+  
+  const [metrics, setMetrics] = useState<FitmentMetrics>({
+    totalEmployees: 0,
+    avgFitmentScore: 0.0,
+    highPerformers: 0,
+    departments: 0,
+  });
+
+  const [employees, setEmployees] = useState<EmployeeFitment[]>([]);
+
+  // Load sample data if LOAD_SAMPLE_DATA flag is enabled
+  // In production, this will be replaced with API calls or CSV upload handlers
+  useEffect(() => {
+    if (LOAD_SAMPLE_DATA) {
+      // Simulate API call or CSV data load
+      const sampleMetrics: FitmentMetrics = {
+        totalEmployees: 5,
+        avgFitmentScore: 7.8,
+        highPerformers: 2,
+        departments: 3,
+      };
+
+      const sampleEmployees: EmployeeFitment[] = [
+        {
+          id: 1,
+          employeeName: "Sarah Johnson",
+          department: "Engineering",
+          currentRole: "Senior Developer",
+          recommendedRole: "Tech Lead",
+          fitmentScore: 8.5,
+          status: "Fit",
+        },
+        {
+          id: 2,
+          employeeName: "Mike Chen",
+          department: "Sales",
+          currentRole: "Sales Rep",
+          recommendedRole: "Account Manager",
+          fitmentScore: 7.2,
+          status: "Fit",
+        },
+        {
+          id: 3,
+          employeeName: "Emma Wilson",
+          department: "Marketing",
+          currentRole: "Marketing Coordinator",
+          recommendedRole: "Marketing Coordinator",
+          fitmentScore: 6.8,
+          status: "Train to Fit",
+        },
+        {
+          id: 4,
+          employeeName: "David Park",
+          department: "Engineering",
+          currentRole: "Junior Developer",
+          recommendedRole: "Senior Developer",
+          fitmentScore: 5.5,
+          status: "Train to Fit",
+        },
+        {
+          id: 5,
+          employeeName: "Lisa Anderson",
+          department: "HR",
+          currentRole: "HR Manager",
+          recommendedRole: "HR Director",
+          fitmentScore: 9.2,
+          status: "Fit",
+        },
+      ];
+
+      setMetrics(sampleMetrics);
+      setEmployees(sampleEmployees);
+    }
+  }, []);
+
+  const filteredEmployees = useMemo(() => {
+    return employees.filter((emp) => {
+      const matchesSearch = emp.employeeName
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      const matchesDepartment =
+        departmentFilter === "all" || 
+        emp.department.toLowerCase() === departmentFilter.toLowerCase();
+      return matchesSearch && matchesDepartment;
+    });
+  }, [employees, searchQuery, departmentFilter]);
+
+  const highPerformersPercentage = metrics.totalEmployees > 0
+    ? ((metrics.highPerformers / metrics.totalEmployees) * 100).toFixed(0)
+    : "0";
+
+  const getStatusVariant = (status: EmployeeFitment["status"]) => {
+    switch (status) {
+      case "Fit":
+        return "default";
+      case "Unfit":
+        return "destructive";
+      case "Train to Fit":
+        return "secondary";
+      case "Overfit":
+        return "outline";
+      default:
+        return "secondary";
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -27,7 +153,9 @@ export default function FitmentAnalysis() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold" data-testid="text-total-employees">0</div>
+            <div className="text-3xl font-bold" data-testid="text-total-employees">
+              {metrics.totalEmployees}
+            </div>
             <p className="text-xs text-muted-foreground mt-1">Across all departments</p>
             <p className="text-xs text-primary mt-2">Active workforce</p>
           </CardContent>
@@ -41,7 +169,9 @@ export default function FitmentAnalysis() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold" data-testid="text-avg-fitment">0.0</div>
+            <div className="text-3xl font-bold" data-testid="text-avg-fitment">
+              {metrics.avgFitmentScore.toFixed(1)}
+            </div>
             <p className="text-xs text-muted-foreground mt-1">Overall employee-role fit</p>
             <p className="text-xs text-primary mt-2">Out of 10.0</p>
           </CardContent>
@@ -55,9 +185,11 @@ export default function FitmentAnalysis() {
             <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold" data-testid="text-high-performers">0</div>
+            <div className="text-3xl font-bold" data-testid="text-high-performers">
+              {metrics.highPerformers}
+            </div>
             <p className="text-xs text-muted-foreground mt-1">Score ≥ 8.0</p>
-            <p className="text-xs text-primary mt-2">0% of total</p>
+            <p className="text-xs text-primary mt-2">{highPerformersPercentage}% of total</p>
           </CardContent>
         </Card>
 
@@ -69,7 +201,9 @@ export default function FitmentAnalysis() {
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold" data-testid="text-departments">0</div>
+            <div className="text-3xl font-bold" data-testid="text-departments">
+              {metrics.departments}
+            </div>
             <p className="text-xs text-muted-foreground mt-1">Unique departments</p>
             <p className="text-xs text-primary mt-2">Organization units</p>
           </CardContent>
@@ -181,11 +315,55 @@ export default function FitmentAnalysis() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td colSpan={6} className="p-12 text-center text-muted-foreground">
-                    No results found.
-                  </td>
-                </tr>
+                {filteredEmployees.length === 0 ? (
+                  <tr>
+                    <td 
+                      colSpan={6} 
+                      className="p-12 text-center text-muted-foreground"
+                      data-testid="text-no-results"
+                    >
+                      No results found.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredEmployees.map((employee) => (
+                    <tr 
+                      key={employee.id} 
+                      className="border-b hover:bg-muted/50 transition-colors"
+                      data-testid={`row-employee-${employee.id}`}
+                    >
+                      <td className="p-4">
+                        <div className="font-medium">{employee.employeeName}</div>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-sm text-muted-foreground">
+                          {employee.department}
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-sm">{employee.currentRole}</div>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-sm font-medium">
+                          {employee.recommendedRole}
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-sm font-mono font-semibold">
+                          {employee.fitmentScore.toFixed(1)}
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <Badge 
+                          variant={getStatusVariant(employee.status)}
+                          data-testid={`badge-status-${employee.id}`}
+                        >
+                          {employee.status}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
